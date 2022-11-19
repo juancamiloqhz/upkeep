@@ -5,6 +5,7 @@
 /* reset */
 button {
   all: unset;
+  @apply cursor-pointer transition;
 }
 
 .PopoverTrigger {
