@@ -33,6 +33,16 @@ export const noteRouter = router({
       },
     });
   }),
+  allArchived: publicProcedure.query(({ ctx }) => {
+    return ctx.prisma.note.findMany({
+      where: {
+        status: "ARCHIVED",
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+  }),
   one: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(({ ctx, input }) => {
@@ -45,21 +55,21 @@ export const noteRouter = router({
   add: protectedProcedure
     .input(
       z.object({
-        id: z.string().optional(),
         title: z.string().optional(),
         content: z.string().optional(),
         background: z.string().optional(),
         color: z.string().optional(),
+        status: z.enum(["ACTIVE", "PINNED", "TRASH", "ARCHIVED"]).optional(),
       })
     )
     .mutation(({ ctx, input }) => {
       return ctx.prisma.note.create({
         data: {
-          id: input?.id,
           title: input?.title ?? "",
           content: input?.content ?? "",
-          background: input?.background ?? "",
-          color: input?.color ?? "",
+          background: input?.background ?? "default",
+          color: input?.color ?? "default",
+          status: input?.status ?? "ACTIVE",
           author: {
             connect: {
               id: ctx.session.user.id,
@@ -76,6 +86,8 @@ export const noteRouter = router({
         content: z.string().optional(),
         background: z.string().optional(),
         color: z.string().optional(),
+        status: z.enum(["ACTIVE", "PINNED", "TRASH", "ARCHIVED"]).optional(),
+        updatedAt: z.date().optional(),
       })
     )
     .mutation(({ ctx, input }) => {
@@ -84,10 +96,12 @@ export const noteRouter = router({
           id: input.id,
         },
         data: {
-          title: input?.title ?? "",
-          content: input?.content ?? "",
-          background: input?.background ?? "",
-          color: input?.color ?? "",
+          ...(input.title && { title: input.title }),
+          ...(input.content && { content: input.content }),
+          ...(input.background && { background: input.background }),
+          ...(input.color && { color: input.color }),
+          ...(input.status && { status: input.status }),
+          ...(input.updatedAt && { updatedAt: input.updatedAt }),
         },
       });
     }),
@@ -104,6 +118,7 @@ export const noteRouter = router({
         },
         data: {
           status: "PINNED",
+          updatedAt: new Date(),
         },
       });
     }),
@@ -120,6 +135,24 @@ export const noteRouter = router({
         },
         data: {
           status: "TRASH",
+          updatedAt: new Date(),
+        },
+      });
+    }),
+  archive: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(({ ctx, input }) => {
+      return ctx.prisma.note.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          status: "ARCHIVED",
+          updatedAt: new Date(),
         },
       });
     }),
@@ -136,6 +169,7 @@ export const noteRouter = router({
         },
         data: {
           status: "ACTIVE",
+          updatedAt: new Date(),
         },
       });
     }),

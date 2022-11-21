@@ -79,7 +79,7 @@ enum Status {
 model Note {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now())
   status    Status   @default(ACTIVE)
   author    User?    @relation(fields: [authorId], references: [id])
   authorId  String?
