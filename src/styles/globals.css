@@ -8,6 +8,10 @@ button {
   @apply cursor-pointer transition;
 }
 
+.container {
+  @apply mx-auto px-2 sm:min-w-[256px] sm:max-w-[256px] sm:px-0 md:min-w-[496px] md:max-w-[496px] lg:min-w-[752px] lg:max-w-[752px] xl:min-w-[1008px] xl:max-w-[1008px] 2xl:min-w-[1264px] 2xl:max-w-[1264px] 3xl:min-w-[1520px] 3xl:max-w-[1520px];
+}
+
 .PopoverTrigger {
   @apply inline-flex h-9 items-center justify-center rounded bg-white px-4 text-base font-medium leading-none text-black shadow;
   @apply cursor-pointer;

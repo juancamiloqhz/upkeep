@@ -1,5 +1,4 @@
 import React from "react";
-import { type inferProcedureOutput } from "@trpc/server";
 import * as Popover from "@radix-ui/react-popover";
 import { TiPinOutline, TiPin } from "react-icons/ti";
 import { HiOutlineUserPlus } from "react-icons/hi2";
@@ -18,14 +17,37 @@ import {
   BiArchiveOut,
 } from "react-icons/bi";
 import { TbDropletOff } from "react-icons/tb";
-
-import { type AppRouter } from "../../server/trpc/router/_app";
 import { trpc } from "../../utils/trpc";
 import Tooltip from "../Radix/Tooltip";
 import { useClickOutside } from "../../utils/helpers";
 import Image from "next/image";
+import { type Note } from "../../types/upkeep";
 
-type Note = inferProcedureOutput<AppRouter["note"]["allActive"]>[number];
+const colorList = [
+  { color: "#f28b82", name: "Red" },
+  { color: "#fbbc04", name: "Orange" },
+  { color: "#fff475", name: "Yellow" },
+  { color: "#ccff90", name: "Green" },
+  { color: "#a7ffeb", name: "Teal" },
+  { color: "#cbf0f8", name: "Blue" },
+  { color: "#aecbfa", name: "Dark blue" },
+  { color: "#d7aefb", name: "Purple" },
+  { color: "#fdcfe8", name: "Pink" },
+  { color: "#e6c9a8", name: "Brown" },
+  { color: "#e8eaed", name: "Gray" },
+];
+
+const bgList = [
+  { path: "/images/svg/dragon-scales.svg", name: "Dragon scales" },
+  { path: "/images/svg/flat-mountains.svg", name: "Mountains" },
+  { path: "/images/svg/liquid-cheese.svg", name: "Liquid cheese" },
+  { path: "/images/svg/quantum-gradient.svg", name: "Quantum" },
+  { path: "/images/svg/radiant-gradient.svg", name: "Radiant" },
+  { path: "/images/svg/slanted-gradient.svg", name: "Slanted" },
+  { path: "/images/svg/spectrum-gradient.svg", name: "Spectrum" },
+  { path: "/images/svg/subtle-prism.svg", name: "Subtle prism" },
+  { path: "/images/svg/sun-tornado.svg", name: "Sun Tornado" },
+];
 
 const ListNote = ({ note }: { note: Note }) => {
   const ref = React.useRef<HTMLLIElement>(null);
@@ -358,7 +380,7 @@ const ListNote = ({ note }: { note: Note }) => {
       tab-index={1}
       key={note.id}
       style={noteStyles}
-      className={`group/li relative flex h-fit flex-col rounded-lg border border-gray-200 bg-white transition-all duration-200 ease-in-out hover:border-gray-300 hover:shadow-md`}
+      className={`group/li relative flex h-fit w-full flex-col rounded-lg border border-black/20 bg-white transition-all duration-200 ease-in-out hover:border-black/30 hover:shadow-md sm:w-60`}
     >
       {/* PIN / UNPIN */}
       {note.status !== "TRASH" ? (
@@ -454,9 +476,7 @@ const ListNote = ({ note }: { note: Note }) => {
                   </button>
                 </Popover.Trigger>
               </Tooltip>
-              <Popover.Portal
-                container={document.getElementsByTagName("main")[0]}
-              >
+              <Popover.Portal>
                 <Popover.Content sideOffset={-7}>
                   <div className="max-w-min rounded-md border border-black/10 bg-white shadow-md">
                     <ul className="flex items-center justify-between gap-1 border-b border-black/10 px-2 py-2">
@@ -619,9 +639,7 @@ const ListNote = ({ note }: { note: Note }) => {
                   </button>
                 </Popover.Trigger>
               </Tooltip>
-              <Popover.Portal
-                container={document.getElementsByTagName("main")[0]}
-              >
+              <Popover.Portal>
                 <Popover.Content sideOffset={-1} align="start">
                   <ul className="rounded-md border border-black/10 bg-white py-1 shadow-md">
                     <li className="flex items-center">
@@ -676,29 +694,3 @@ const ListNote = ({ note }: { note: Note }) => {
 };
 
 export default ListNote;
-
-const colorList = [
-  { color: "#f28b82", name: "Red" },
-  { color: "#fbbc04", name: "Orange" },
-  { color: "#fff475", name: "Yellow" },
-  { color: "#ccff90", name: "Green" },
-  { color: "#a7ffeb", name: "Teal" },
-  { color: "#cbf0f8", name: "Blue" },
-  { color: "#aecbfa", name: "Dark blue" },
-  { color: "#d7aefb", name: "Purple" },
-  { color: "#fdcfe8", name: "Pink" },
-  { color: "#e6c9a8", name: "Brown" },
-  { color: "#e8eaed", name: "Gray" },
-];
-
-const bgList = [
-  { path: "/images/svg/dragon-scales.svg", name: "Dragon scales" },
-  { path: "/images/svg/flat-mountains.svg", name: "Mountains" },
-  { path: "/images/svg/liquid-cheese.svg", name: "Liquid cheese" },
-  { path: "/images/svg/quantum-gradient.svg", name: "Quantum" },
-  { path: "/images/svg/radiant-gradient.svg", name: "Radiant" },
-  { path: "/images/svg/slanted-gradient.svg", name: "Slanted" },
-  { path: "/images/svg/spectrum-gradient.svg", name: "Spectrum" },
-  { path: "/images/svg/subtle-prism.svg", name: "Subtle prism" },
-  { path: "/images/svg/sun-tornado.svg", name: "Sun Tornado" },
-];

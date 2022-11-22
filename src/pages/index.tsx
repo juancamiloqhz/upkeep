@@ -1,42 +1,37 @@
 import React from "react";
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
+// import Link from "next/link";
 import { useIsMutating } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-
 import { trpc } from "../utils/trpc";
 import Header from "../components/Header";
-import ListNote from "../components/Note/ListNote";
+// import ListNote from "../components/Note/ListNote";
 import { useClickOutside } from "../utils/helpers";
+import Sidebar from "../components/Sidebar";
+import { useRouter } from "next/router";
+import { HomeView, ArchiveView, TrashView } from "../components/Views";
 
 const Home: NextPage = () => {
   const formRef = React.useRef<HTMLFormElement>(null);
   const { data: sessionData } = useSession();
+  const [forceSidebarOpen, setForceSidebarOpen] = React.useState(false);
   const [creatingNote, setCreatingNote] = React.useState(false);
   const [title, setTitle] = React.useState("");
   const [content, setContent] = React.useState("");
   const [background, setBackground] = React.useState("default");
   const [color, setColor] = React.useState("default");
-
-  const allActiveNotes = trpc.note.allActive.useQuery(undefined, {
-    staleTime: 3000,
-  });
-  const allPinnedNotes = trpc.note.allPinned.useQuery(undefined, {
-    staleTime: 3000,
-  });
-  const allTrashedNotes = trpc.note.allTrashed.useQuery(undefined, {
-    staleTime: 3000,
-  });
-  const allArchivedNotes = trpc.note.allArchived.useQuery(undefined, {
-    staleTime: 3000,
-  });
+  const router = useRouter();
+  // console.log(router);
   const utils = trpc.useContext();
   const addNote = trpc.note.add.useMutation({
     async onMutate({ title, content, background, color }) {
       // console.log("onMutate", res);
       await utils.note.allActive.cancel();
-      const notes = allActiveNotes.data ?? [];
+      await utils.note.allPinned.cancel();
+      await utils.note.allTrashed.cancel();
+      await utils.note.allArchived.cancel();
+      const allActiveNotes = utils.note.allActive.getData();
       utils.note.allActive.setData(undefined, [
         {
           id: `${Math.random()}`,
@@ -49,7 +44,7 @@ const Home: NextPage = () => {
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        ...notes,
+        ...(allActiveNotes || []),
       ]);
       setTitle("");
       setContent("");
@@ -75,6 +70,9 @@ const Home: NextPage = () => {
     // to avoid race conditions if you're clicking fast
     if (number === 0) {
       utils.note.allActive.invalidate();
+      utils.note.allPinned.invalidate();
+      utils.note.allTrashed.invalidate();
+      utils.note.allArchived.invalidate();
     }
   }, [number, utils]);
 
@@ -101,94 +99,54 @@ const Home: NextPage = () => {
         <meta name="description" content="Google Keep Clone" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Header loading={allActiveNotes.isLoading} />
-      <div className="flex min-h-screen flex-col bg-white">
-        <div className="mx-auto w-full px-4 py-16 md:max-w-5xl lg:max-w-7xl">
-          <h1 className="text-center text-xl">{`Creating note: ${creatingNote}`}</h1>
-          <form
-            ref={formRef}
-            className="mx-auto mb-16 flex max-w-md flex-col gap-2 rounded-xl border border-gray-200 bg-white/10 py-4"
-            onSubmit={createNote}
-            onFocus={() => setCreatingNote(true)}
-          >
-            <label htmlFor="title" className="hidden">
-              Title
-            </label>
-            <input
-              type="text"
-              name="title"
-              id="title"
-              value={title}
-              placeholder="Title"
-              onChange={(e) => setTitle(e.currentTarget.value)}
-              className="px-4 focus-visible:outline-none"
-            />
-            <label htmlFor="content" className="hidden">
-              Content
-            </label>
-            <textarea
-              name="content"
-              id="content"
-              placeholder="Take a note"
-              cols={30}
-              rows={1}
-              value={content}
-              onFocus={(e) => (e.currentTarget.rows = 5)}
-              onBlur={(e) => (e.currentTarget.rows = 1)}
-              onChange={(e) => setContent(e.currentTarget.value)}
-              className="px-4 focus-visible:outline-none"
-            />
-            {addNote.error ? <p>{addNote.error.message}</p> : null}
-          </form>
-
-          {allPinnedNotes.data?.length ? (
+      <Header setForceSidebarOpen={setForceSidebarOpen} />
+      <div className="h-16"></div>
+      <div className="relative flex h-[calc(100vh-4rem)] min-h-screen bg-white">
+        <Sidebar forceSidebarOpen={forceSidebarOpen} />
+        <div className="container relative mx-auto py-2 sm:py-16">
+          {router.asPath === "/#home" ? (
             <>
-              <h1 className="mb-2 px-3 text-xs font-semibold uppercase">
-                Pinned
-              </h1>
-              <ul className="mb-16 grid w-full grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
-                {allPinnedNotes.data?.map((note) => (
-                  <ListNote key={note.id} note={note} />
-                ))}
-              </ul>
+              <h1 className="text-center text-xl">{`Creating note: ${creatingNote}`}</h1>
+              <form
+                ref={formRef}
+                className="mx-auto mb-16 flex max-w-md flex-col gap-2 rounded-xl border border-gray-200 bg-white/10 py-4"
+                onSubmit={createNote}
+                onFocus={() => setCreatingNote(true)}
+              >
+                <label htmlFor="title" className="hidden">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  id="title"
+                  value={title}
+                  placeholder="Title"
+                  onChange={(e) => setTitle(e.currentTarget.value)}
+                  className="px-4 focus-visible:outline-none"
+                />
+                <label htmlFor="content" className="hidden">
+                  Content
+                </label>
+                <textarea
+                  name="content"
+                  id="content"
+                  placeholder="Take a note"
+                  cols={30}
+                  rows={1}
+                  value={content}
+                  onFocus={(e) => (e.currentTarget.rows = 5)}
+                  onBlur={(e) => (e.currentTarget.rows = 1)}
+                  onChange={(e) => setContent(e.currentTarget.value)}
+                  className="px-4 focus-visible:outline-none"
+                />
+                {addNote.error ? <p>{addNote.error.message}</p> : null}
+              </form>
+              <HomeView />
             </>
           ) : null}
-          {allActiveNotes.data?.length ? (
-            <>
-              <h1 className="mb-2 px-3 text-xs font-semibold uppercase">
-                Other
-              </h1>
-              <ul className="mb-16 grid w-full grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
-                {allActiveNotes.data?.map((note) => (
-                  <ListNote key={note.id} note={note} />
-                ))}
-              </ul>
-            </>
-          ) : null}
-          {allArchivedNotes.data?.length ? (
-            <>
-              <h1 className="mb-2 px-3 text-xs font-semibold uppercase">
-                Archived
-              </h1>
-              <ul className="mb-16 grid w-full grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
-                {allArchivedNotes.data?.map((note) => (
-                  <ListNote key={note.id} note={note} />
-                ))}
-              </ul>
-            </>
-          ) : null}
-          {allTrashedNotes.data?.length ? (
-            <>
-              <h1 className="mb-2 px-3 text-xs font-semibold uppercase">
-                Trash
-              </h1>
-              <ul className="mb-16 grid w-full grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
-                {allTrashedNotes.data?.map((note) => (
-                  <ListNote key={note.id} note={note} />
-                ))}
-              </ul>
-            </>
-          ) : null}
+          {router.asPath === "/#archive" ? <ArchiveView /> : null}
+          {router.asPath === "/#trash" ? <TrashView /> : null}
         </div>
       </div>
     </>
