@@ -28,7 +28,7 @@ export default function Sidebar({
       <div
         className={`sidebar-placeholder${forceSidebarOpen ? " open" : ""}`}
       ></div>
-      <div className="sidebar-inner">
+      <div className="sidebar-inner bg-gray-50 dark:bg-gray-900">
         <div className="sidebar-menu">
           {sidebarButtonList.map((button) => (
             <SidebarBtn
@@ -71,7 +71,6 @@ export default function Sidebar({
           display: flex;
           flex-direction: column;
           box-sizing: border-box;
-          background-color: #fff;
           z-index: 99;
           font-size: 14px;
         }
@@ -163,16 +162,10 @@ function SidebarBtn({
   const { asPath, push } = useRouter();
   return (
     <button
-      // className={`${
-      //   sidebarOpen
-      //     ? "w-full rounded-r-full pl-2"
-      //     : "ml-2 w-14 justify-center rounded-full"
-      // } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] flex h-14 max-w-[288px] items-center whitespace-nowrap bg-blue-100 transition-all duration-100`}
-      //   className="ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] ml-2 flex h-14 w-14 max-w-[288px] items-center justify-center whitespace-nowrap rounded-full bg-blue-100 transition-all duration-100 group-hover/sidebar:w-full group-hover/sidebar:rounded-r-full group-hover/sidebar:rounded-l-none group-hover/sidebar:pl-2"
       className={`${
         paths.includes(asPath)
-          ? "bg-fuchsia-500/10 text-fuchsia-600 hover:bg-fuchsia-500/10"
-          : "text-black/60 hover:bg-black/10"
+          ? "bg-fuchsia-500/10 text-fuchsia-600 hover:bg-fuchsia-500/10 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:hover:bg-fuchsia-500/20"
+          : "text-black/60 hover:bg-black/10 dark:text-white/60 dark:hover:bg-white/10"
       } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
       onClick={() => push(paths[0] as string)}
     >

@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import * as Popover from "@radix-ui/react-popover";
+import * as Dialog from "@radix-ui/react-dialog";
 import { TiPinOutline, TiPin } from "react-icons/ti";
 import { HiOutlineUserPlus } from "react-icons/hi2";
 import {
@@ -326,29 +327,32 @@ const ListNote = ({ note }: { note: Note }) => {
       setBtnFocused(false);
     },
   });
-  const noteStyles = {
-    ...(note.color !== "default" && note.background === "default"
-      ? { backgroundColor: note.color }
-      : {}),
-    ...(note.background !== "default" && note.color === "default"
-      ? {
-          backgroundImage: `url(${note.background})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }
-      : {}),
-    ...(note.color !== "default" && note.background !== "default"
-      ? {
-          backgroundColor: note.color,
-          borderColor: note.color,
-          backgroundImage: `url(${note.background})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }
-      : {}),
-  };
+  const noteStyles = React.useMemo(
+    () => ({
+      ...(note.color !== "default" && note.background === "default"
+        ? { backgroundColor: note.color }
+        : {}),
+      ...(note.background !== "default" && note.color === "default"
+        ? {
+            backgroundImage: `url(${note.background})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }
+        : {}),
+      ...(note.color !== "default" && note.background !== "default"
+        ? {
+            backgroundColor: note.color,
+            borderColor: note.color,
+            backgroundImage: `url(${note.background})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }
+        : {}),
+    }),
+    [note.color, note.background]
+  );
 
   return (
     <motion.li
@@ -361,13 +365,13 @@ const ListNote = ({ note }: { note: Note }) => {
       tab-index={1}
       key={note.id}
       style={noteStyles}
-      className={`group/li relative mb-4 flex h-fit w-full break-inside-avoid flex-col rounded-lg border border-black/20 bg-white transition-all duration-200 ease-in-out hover:border-black/30 hover:shadow-md sm:w-60`}
+      className={`group/li relative mb-4 flex h-fit w-full break-inside-avoid flex-col rounded-lg border border-black/20 bg-gray-50 transition-all duration-200 ease-in-out hover:border-black/30 hover:shadow-md dark:border-white/20 dark:bg-gray-900 sm:w-60`}
     >
       {/* PIN / UNPIN */}
       {note.status !== "TRASH" ? (
         <Tooltip text={note.status === "PINNED" ? "Unpin note" : "Pin note"}>
           <button
-            className={`group/btn invisible absolute top-1 right-1 flex items-center justify-center rounded-full p-[0.4rem] opacity-0 transition-all duration-300 ease-in hover:bg-black/10 group-hover/li:visible group-hover/li:opacity-100${
+            className={`group/btn invisible absolute top-1 right-1 flex items-center justify-center rounded-full p-[0.4rem] opacity-0 transition-all duration-300 ease-in hover:bg-black/10 group-hover/li:visible group-hover/li:opacity-100 dark:hover:bg-white/20${
               btnFocused ? " !visible !opacity-100" : ""
             }`}
             onClick={
@@ -378,12 +382,12 @@ const ListNote = ({ note }: { note: Note }) => {
           >
             {note.status === "PINNED" ? (
               <TiPin
-                className="-rotate-45 text-black/60 transition-all duration-300 ease-in group-hover/btn:text-black"
+                className="-rotate-45 text-black/60 transition-all duration-300 ease-in group-hover/btn:text-black dark:text-white/60 dark:group-hover/btn:text-white"
                 size={24}
               />
             ) : (
               <TiPinOutline
-                className="text-black/60 transition-all duration-300 ease-in group-hover/btn:text-black"
+                className="text-black/60 transition-all duration-300 ease-in group-hover/btn:text-black dark:text-white/60 dark:group-hover/btn:text-white"
                 size={24}
               />
             )}
@@ -419,18 +423,50 @@ const ListNote = ({ note }: { note: Note }) => {
         {/* DELETE / RESTORE */}
         {note.status === "TRASH" ? (
           <span>
-            <Tooltip text="Delete forever">
-              <button
-                onClick={() => deleteNote.mutate({ id: note.id })}
-                className="rounded-full p-[9px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
-              >
-                <MdOutlineDeleteForever size={22} />
-              </button>
-            </Tooltip>
+            {/* Delete Dialog Modal */}
+            <Dialog.Root>
+              <Tooltip text="Delete forever">
+                <Dialog.Trigger asChild>
+                  <button
+                    type="button"
+                    className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
+                  >
+                    <MdOutlineDeleteForever size={22} />
+                  </button>
+                </Dialog.Trigger>
+              </Tooltip>
+              <Dialog.Portal>
+                <Dialog.Overlay className="fixed inset-0 z-[9999] bg-black/80" />
+                <Dialog.Content className="fixed top-1/2 left-1/2 z-[9999] flex max-h-[85vh] min-h-[120px] w-[90vw] max-w-[500px] -translate-x-1/2 -translate-y-1/2 transform flex-col justify-between rounded-md border-black/20 bg-gray-50 p-6 pb-4 shadow-md focus:outline-none dark:border-white/30 dark:bg-gray-900">
+                  <Dialog.Title className="text-sm ">
+                    Delete note forever?
+                  </Dialog.Title>
+                  <div className="flex justify-end gap-2">
+                    <Dialog.Close asChild>
+                      <button
+                        className="h-9 rounded-md px-6 text-sm font-medium hover:bg-black/10 focus:bg-black/10 focus:outline-none dark:hover:bg-white/10 dark:focus:bg-white/10"
+                        type="button"
+                      >
+                        Cancel
+                      </button>
+                    </Dialog.Close>
+                    <Dialog.Close asChild>
+                      <button
+                        className="h-9 rounded-md px-6 text-sm font-medium text-blue-500 hover:bg-black/10 focus:bg-black/10 focus:outline-none dark:text-blue-400 dark:hover:bg-white/10 dark:focus:bg-white/10"
+                        onClick={() => deleteNote.mutate({ id: note.id })}
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    </Dialog.Close>
+                  </div>
+                </Dialog.Content>
+              </Dialog.Portal>
+            </Dialog.Root>
             <Tooltip text="Restore">
               <button
                 onClick={() => restoreNote.mutate({ id: note.id })}
-                className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
               >
                 <MdOutlineRestoreFromTrash size={22} />
               </button>
@@ -443,7 +479,7 @@ const ListNote = ({ note }: { note: Note }) => {
               <button
                 type="button"
                 onFocus={() => setBtnFocused(true)}
-                className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
               >
                 <BiBellPlus size={18} />
               </button>
@@ -453,7 +489,7 @@ const ListNote = ({ note }: { note: Note }) => {
               <button
                 type="button"
                 onFocus={() => setBtnFocused(true)}
-                className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
               >
                 <HiOutlineUserPlus size={18} />
               </button>
@@ -465,7 +501,7 @@ const ListNote = ({ note }: { note: Note }) => {
                   <button
                     type="button"
                     onFocus={() => setBtnFocused(true)}
-                    className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                    className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                   >
                     <MdOutlineColorLens size={18} />
                   </button>
@@ -473,16 +509,16 @@ const ListNote = ({ note }: { note: Note }) => {
               </Tooltip>
               <Popover.Portal>
                 <Popover.Content sideOffset={-7}>
-                  <div className="max-w-min rounded-md border border-black/10 bg-white shadow-md">
+                  <div className="max-w-min rounded-md border border-black/10 bg-gray-50 shadow-md dark:border-white/10 dark:bg-gray-900">
                     <ul className="flex items-center justify-between gap-1 border-b border-black/10 px-2 py-2">
                       <Tooltip text="No color">
                         <li className="relative">
                           <TbDropletOff
                             size={32}
-                            className={`cursor-pointer rounded-full border-2 border-solid border-black/20 stroke-black/60 p-1 transition-all hover:border-black duration-200${
+                            className={`cursor-pointer rounded-full border-2 border-solid stroke-black/60 p-1 transition-all dark:stroke-white/60 duration-200${
                               note.color === "default"
                                 ? " border-fuchsia-500 hover:border-fuchsia-500"
-                                : ""
+                                : " border-black/20 hover:border-black dark:border-white/20 dark:hover:border-white"
                             }`}
                             onClick={() => {
                               editNote.mutate({
@@ -510,10 +546,10 @@ const ListNote = ({ note }: { note: Note }) => {
                               fill="none"
                               className={`rounded-full stroke-[3px] stroke-[${
                                 color.color
-                              }] cursor-pointer transition-all hover:stroke-black/80 duration-300${
+                              }] cursor-pointer transition-all duration-300${
                                 note.color === color.color
                                   ? " stroke-fuchsia-500 hover:stroke-fuchsia-500"
-                                  : ""
+                                  : " hover:stroke-black/80 dark:hover:stroke-white/80"
                               }`}
                               onClick={() => {
                                 editNote.mutate({
@@ -544,10 +580,10 @@ const ListNote = ({ note }: { note: Note }) => {
                         <li className="relative">
                           <MdOutlineHideImage
                             size={40}
-                            className={`cursor-pointer rounded-full border-2 border-solid border-black/20 p-[6px] hover:border-black fill-black/60${
+                            className={`cursor-pointer rounded-full border-2 border-solid fill-black/60 p-[6px] dark:fill-white/60${
                               note.background === "default"
                                 ? " border-fuchsia-500 hover:border-fuchsia-500"
-                                : ""
+                                : " border-black/20 hover:border-black dark:border-white/20 dark:hover:border-white"
                             }`}
                             onClick={() => {
                               editNote.mutate({
@@ -571,10 +607,10 @@ const ListNote = ({ note }: { note: Note }) => {
                               src={bg.path}
                               alt={bg.name}
                               fill
-                              className={`cursor-pointer rounded-full object-cover object-center outline outline-2 -outline-offset-2 outline-transparent hover:outline-black${
+                              className={`cursor-pointer rounded-full object-cover object-center outline outline-2 -outline-offset-2${
                                 note.background === bg.path
                                   ? " outline-fuchsia-500 hover:outline-fuchsia-500"
-                                  : ""
+                                  : " outline-transparent hover:outline-black dark:hover:outline-white"
                               }`}
                               onClick={() => {
                                 editNote.mutate({
@@ -601,7 +637,7 @@ const ListNote = ({ note }: { note: Note }) => {
             <Tooltip text="Add image">
               <button
                 type="button"
-                className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
               >
                 <BiImageAdd size={18} />
               </button>
@@ -617,7 +653,7 @@ const ListNote = ({ note }: { note: Note }) => {
                     ? () => unarchiveNote.mutate({ id: note.id })
                     : () => archiveNote.mutate({ id: note.id })
                 }
-                className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
               >
                 {note.status === "ARCHIVED" ? (
                   <BiArchiveOut size={18} />
@@ -633,7 +669,7 @@ const ListNote = ({ note }: { note: Note }) => {
                   <button
                     type="button"
                     onFocus={() => setBtnFocused(true)}
-                    className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                    className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                   >
                     <MdMoreVert size={18} />
                   </button>
@@ -641,12 +677,12 @@ const ListNote = ({ note }: { note: Note }) => {
               </Tooltip>
               <Popover.Portal>
                 <Popover.Content sideOffset={-1} align="start">
-                  <ul className="rounded-md border border-black/10 bg-white py-1 shadow-md">
+                  <ul className="rounded-md border border-black/10 bg-gray-50 py-1 shadow-md dark:border-white/10 dark:bg-gray-900">
                     <li className="flex items-center">
                       <button
                         type="button"
                         onClick={() => trashNote.mutate({ id: note.id })}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
+                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/20 dark:text-white dark:hover:bg-white/20 "
                       >
                         Delete note
                       </button>
@@ -655,7 +691,7 @@ const ListNote = ({ note }: { note: Note }) => {
                       <button
                         type="button"
                         onClick={() => console.log("Add label")}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
+                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/20 dark:text-white dark:hover:bg-white/20 "
                       >
                         Add label
                       </button>
@@ -664,7 +700,7 @@ const ListNote = ({ note }: { note: Note }) => {
                       <button
                         type="button"
                         onClick={() => console.log("Add drawing")}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
+                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/20 dark:text-white dark:hover:bg-white/20 "
                       >
                         Add drawing
                       </button>
@@ -673,7 +709,7 @@ const ListNote = ({ note }: { note: Note }) => {
                       <button
                         type="button"
                         onClick={() => copyNote.mutate({ ...note })}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
+                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/20 dark:text-white dark:hover:bg-white/20 "
                       >
                         Make a copy
                       </button>
@@ -682,7 +718,7 @@ const ListNote = ({ note }: { note: Note }) => {
                       <button
                         type="button"
                         onClick={() => console.log("Show checkboxes")}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
+                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/20 dark:text-white dark:hover:bg-white/20 "
                       >
                         Show checkboxes
                       </button>

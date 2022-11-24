@@ -17,7 +17,7 @@ const RadixTooltip = ({
         <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
         <Tooltip.Portal>
           <Tooltip.Content
-            className="z-[101] select-none rounded-[4px] bg-black/80 p-[6px] text-xs leading-none text-white shadow-md duration-[200ms] will-change-transform"
+            className="z-[101] select-none rounded-[4px] bg-gray-900 p-[6px] text-xs leading-none text-white shadow-md duration-[200ms] will-change-transform dark:bg-gray-700"
             sideOffset={1}
             side={side || "bottom"}
           >

@@ -36,7 +36,7 @@ const Home: NextPage = () => {
       </Head>
       <Header setForceSidebarOpen={setForceSidebarOpen} />
       <div className="h-16"></div>
-      <div className="relative flex h-[calc(100vh-4rem)] bg-white">
+      <div className="relative flex min-h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900">
         <Sidebar forceSidebarOpen={forceSidebarOpen} />
         <div className="mx-auto w-full px-4 sm:max-w-[496px] sm:px-0 lg:max-w-[752px] xl:max-w-[1008px] 2xl:max-w-[1264px] 3xl:max-w-[1520px] 4xl:max-w-[1776px] 5xl:max-w-[2032px] 6xl:max-w-[2288px]">
           {router.asPath === "/#home" || router.asPath === "/" ? (

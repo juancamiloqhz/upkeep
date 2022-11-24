@@ -3,6 +3,7 @@ import { type Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { Inter as NextFont } from "@next/font/google";
 import { trpc } from "../utils/trpc";
+import { ThemeProvider } from "next-themes";
 
 const font = NextFont({ subsets: ["latin"] });
 
@@ -19,9 +20,11 @@ const MyApp: AppType<{ session: Session | null }> = ({
           font-family: ${font.style.fontFamily};
         }
       `}</style>
-      <main>
-        <Component {...pageProps} />
-      </main>
+      <ThemeProvider enableSystem={true} attribute="class">
+        <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <Component {...pageProps} />
+        </main>
+      </ThemeProvider>
     </SessionProvider>
   );
 };

@@ -59,7 +59,7 @@ export const noteRouter = router({
         content: z.string().optional(),
         background: z.string().optional(),
         color: z.string().optional(),
-        status: z.enum(["ACTIVE", "PINNED", "TRASH", "ARCHIVED"]).optional(),
+        status: z.enum(["ACTIVE", "PINNED", "TRASH", "ARCHIVED"]),
       })
     )
     .mutation(({ ctx, input }) => {

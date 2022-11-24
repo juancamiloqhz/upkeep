@@ -5,6 +5,7 @@ import Image from "next/image";
 import Tooltip from "../Radix/Tooltip";
 import { bgList, colorList } from "../../utils/constants";
 import * as Popover from "@radix-ui/react-popover";
+import * as Label from "@radix-ui/react-label";
 import { TiPinOutline, TiPin } from "react-icons/ti";
 import { HiOutlineUserPlus } from "react-icons/hi2";
 import {
@@ -26,6 +27,7 @@ import {
   BiRedo,
 } from "react-icons/bi";
 import { TbDropletOff } from "react-icons/tb";
+import { type Note } from "../../types/upkeep";
 
 export default function CreateNote() {
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -34,47 +36,62 @@ export default function CreateNote() {
   const [content, setContent] = React.useState("");
   const [background, setBackground] = React.useState("default");
   const [noteColor, setNoteColor] = React.useState("default");
-  const [status, setStatus] = React.useState("ACTIVE");
+  const [status, setStatus] = React.useState<Note["status"]>("ACTIVE");
   const utils = trpc.useContext();
   const addNote = trpc.note.add.useMutation({
-    async onMutate({ title, content, background, color }) {
+    async onMutate({ title, content, background, color, status }) {
       // console.log("onMutate", res);
       await utils.note.allActive.cancel();
       await utils.note.allPinned.cancel();
       await utils.note.allTrashed.cancel();
       await utils.note.allArchived.cancel();
       const allActiveNotes = utils.note.allActive.getData();
-      utils.note.allActive.setData(undefined, [
-        {
-          id: `${Math.random()}`,
-          title: title || "",
-          content: content || "",
-          background: background || "default",
-          color: color || "default",
-          status: "ACTIVE",
-          authorId: `${Math.random()}`,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        ...(allActiveNotes || []),
-      ]);
+      const allPinnedNotes = utils.note.allPinned.getData();
+      const newNoteStatus: Note["status"] = status;
+      const newNote = {
+        id: `${Math.random()}`,
+        title: title || "",
+        content: content || "",
+        background: background || "default",
+        color: color || "default",
+        status: newNoteStatus,
+        authorId: `${Math.random()}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      switch (status) {
+        case "ACTIVE":
+          utils.note.allActive.setData(undefined, [
+            newNote,
+            ...(allActiveNotes || []),
+          ]);
+          break;
+        case "PINNED":
+          utils.note.allPinned.setData(undefined, [
+            newNote,
+            ...(allPinnedNotes || []),
+          ]);
+          break;
+        default:
+          break;
+      }
       setTitle("");
       setContent("");
       setBackground("default");
       setNoteColor("default");
     },
   });
-  function createNote(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (title || content) {
-      addNote.mutate({
-        title,
-        content,
-        background,
-        color: noteColor,
-      });
-    }
-  }
+  // function createNote(e: React.FormEvent<HTMLFormElement>) {
+  //   e.preventDefault();
+  //   if (title || content) {
+  //     addNote.mutate({
+  //       title,
+  //       content,
+  //       background,
+  //       color: noteColor,
+  //     });
+  //   }
+  // }
 
   useClickOutside({
     ref: formRef,
@@ -86,11 +103,13 @@ export default function CreateNote() {
           content,
           background,
           color: noteColor,
+          status,
         });
       }
       setFormFocused(false);
       setBackground("default");
       setNoteColor("default");
+      setStatus("ACTIVE");
     },
   });
 
@@ -120,14 +139,15 @@ export default function CreateNote() {
   return (
     <form
       ref={formRef}
-      className="relative mx-auto mb-16 mt-6 flex max-w-xl flex-col rounded-xl border border-gray-200 bg-white/10 shadow-lg"
-      onSubmit={createNote}
+      className="bg-grey-40 relative mx-auto mb-16 mt-6 flex max-w-xl flex-col rounded-xl border border-black/10 shadow-lg dark:border-white/20 dark:bg-gray-900"
+      onSubmit={(e) => e.preventDefault()}
+      action=""
       onFocus={() => setFormFocused(true)}
       style={formStyles}
     >
-      <label htmlFor="title" className="hidden">
-        Title
-      </label>
+      <Label.Root htmlFor="title" className="hidden">
+        Note title
+      </Label.Root>
       <input
         type="text"
         name="title"
@@ -135,13 +155,13 @@ export default function CreateNote() {
         value={title}
         placeholder="Title"
         onChange={(e) => setTitle(e.currentTarget.value)}
-        className={`rounded-t-xl px-4 py-3 placeholder:font-medium placeholder:text-black/70 focus-visible:outline-none bg-transparent${
+        className={`rounded-t-xl px-4 py-3 placeholder:font-medium placeholder:text-black/70 focus-visible:outline-none dark:placeholder:text-white/70 bg-transparent${
           !formFocused ? " hidden" : ""
         }`}
       />
-      <label htmlFor="content" className="hidden">
-        Content
-      </label>
+      <Label.Root htmlFor="content" className="hidden">
+        Note content
+      </Label.Root>
       <textarea
         name="content"
         id="content"
@@ -152,8 +172,8 @@ export default function CreateNote() {
         onChange={(e) => setContent(e.currentTarget.value)}
         className={`resize-none px-4 placeholder:text-sm placeholder:font-medium focus-visible:outline-none bg-transparent${
           !formFocused
-            ? " h-11 rounded-xl placeholder:leading-[44px] placeholder:text-black"
-            : " py-3 placeholder:text-black/70"
+            ? " h-11 rounded-xl placeholder:leading-[44px] placeholder:text-black dark:placeholder:text-white"
+            : " py-3 placeholder:text-black/70 dark:placeholder:text-white/70"
         }`}
       />
       {/* <div className="h-9 px-3" contentEditable placeholder="Take a note"></div> */}
@@ -162,28 +182,28 @@ export default function CreateNote() {
         <>
           <Tooltip text={status === "PINNED" ? "Unpin note" : "Pin note"}>
             <button
-              className={`group/btn absolute top-1 right-1 flex items-center justify-center rounded-full p-[0.4rem] transition-all duration-300 ease-in hover:bg-black/10 group-hover/li:visible group-hover/li:opacity-100`}
+              className={`group/btn absolute top-1 right-1 flex items-center justify-center rounded-full p-[0.4rem] transition-all duration-300 ease-in hover:bg-black/10 group-hover/li:visible group-hover/li:opacity-100 dark:hover:bg-white/20`}
               onClick={() =>
                 setStatus(status === "PINNED" ? "ACTIVE" : "PINNED")
               }
             >
               {status === "PINNED" ? (
                 <TiPin
-                  className="-rotate-45 text-black/60 transition-all duration-300 ease-in group-hover/btn:text-black"
+                  className="-rotate-45 text-black/60 transition-all duration-300 ease-in group-hover/btn:text-black dark:text-white/60 dark:group-hover/btn:text-white"
                   size={24}
                 />
               ) : (
                 <TiPinOutline
-                  className="text-black/60 transition-all duration-300 ease-in group-hover/btn:text-black"
+                  className="text-black/60 transition-all duration-300 ease-in group-hover/btn:text-black dark:text-white/60 dark:group-hover/btn:text-white"
                   size={24}
                 />
               )}
             </button>
           </Tooltip>
           <div
-            className={`flex flex-col justify-between rounded-b-xl px-2 py-1 sm:flex-row sm:items-center`}
+            className={`flex flex-col justify-between rounded-b-xl bg-gray-50 px-2 py-1 dark:bg-gray-900 sm:flex-row sm:items-center`}
             style={{
-              backgroundColor: noteColor !== "default" ? noteColor : "white",
+              backgroundColor: noteColor !== "default" ? noteColor : "",
             }}
           >
             <div className="flex items-center justify-between sm:justify-start sm:gap-4">
@@ -191,7 +211,7 @@ export default function CreateNote() {
               <Tooltip text="Reminder">
                 <button
                   type="button"
-                  className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                  className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                 >
                   <BiBellPlus size={18} />
                 </button>
@@ -200,7 +220,7 @@ export default function CreateNote() {
               <Tooltip text="Collaborator">
                 <button
                   type="button"
-                  className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                  className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                 >
                   <HiOutlineUserPlus size={18} />
                 </button>
@@ -211,7 +231,7 @@ export default function CreateNote() {
                   <Popover.Trigger asChild>
                     <button
                       type="button"
-                      className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                      className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                     >
                       <MdOutlineColorLens size={18} />
                     </button>
@@ -219,16 +239,16 @@ export default function CreateNote() {
                 </Tooltip>
 
                 <Popover.Content sideOffset={-7} className="z-10">
-                  <div className="max-w-min rounded-md border border-black/10 bg-white shadow-md">
+                  <div className="max-w-min rounded-md border border-black/10 bg-gray-50 shadow-md dark:border-white/10 dark:bg-gray-900">
                     <ul className="flex items-center justify-between gap-1 border-b border-black/10 px-2 py-2">
                       <Tooltip text="No color">
                         <li className="relative">
                           <TbDropletOff
                             size={32}
-                            className={`cursor-pointer rounded-full border-2 border-solid border-black/20 stroke-black/60 p-1 transition-all hover:border-black duration-200${
+                            className={`cursor-pointer rounded-full border-2 border-solid stroke-black/60 p-1 transition-all dark:stroke-white/60 duration-200${
                               noteColor === "default"
                                 ? " border-fuchsia-500 hover:border-fuchsia-500"
-                                : ""
+                                : " border-black/20 hover:border-black dark:border-white/20 dark:hover:border-white"
                             }`}
                             onClick={() => setNoteColor("default")}
                           />
@@ -251,10 +271,10 @@ export default function CreateNote() {
                               fill="none"
                               className={`rounded-full stroke-[3px] stroke-[${
                                 color.color
-                              }] cursor-pointer transition-all hover:stroke-black/80 duration-300${
+                              }] cursor-pointer transition-all duration-300${
                                 noteColor === color.color
                                   ? " stroke-fuchsia-500 hover:stroke-fuchsia-500"
-                                  : ""
+                                  : " hover:stroke-black/80 dark:hover:stroke-white/80"
                               }`}
                               onClick={() => setNoteColor(color.color)}
                             >
@@ -280,10 +300,10 @@ export default function CreateNote() {
                         <li className="relative">
                           <MdOutlineHideImage
                             size={40}
-                            className={`cursor-pointer rounded-full border-2 border-solid border-black/20 p-[6px] hover:border-black fill-black/60${
+                            className={`cursor-pointer rounded-full border-2 border-solid fill-black/60 p-[6px] dark:fill-white/60${
                               background === "default"
                                 ? " border-fuchsia-500 hover:border-fuchsia-500"
-                                : ""
+                                : " border-black/20 hover:border-black dark:border-white/20 dark:hover:border-white"
                             }`}
                             onClick={() => setBackground("default")}
                           />
@@ -302,10 +322,10 @@ export default function CreateNote() {
                               src={bg.path}
                               alt={bg.name}
                               fill
-                              className={`cursor-pointer rounded-full object-cover object-center outline outline-2 -outline-offset-2 outline-transparent hover:outline-black${
+                              className={`cursor-pointer rounded-full object-cover object-center outline outline-2 -outline-offset-2${
                                 background === bg.path
                                   ? " outline-fuchsia-500 hover:outline-fuchsia-500"
-                                  : ""
+                                  : " outline-transparent hover:outline-black dark:hover:outline-white"
                               }`}
                               onClick={() => setBackground(bg.path)}
                             />
@@ -326,7 +346,7 @@ export default function CreateNote() {
               <Tooltip text="Add image">
                 <button
                   type="button"
-                  className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                  className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                 >
                   <BiImageAdd size={18} />
                 </button>
@@ -340,7 +360,7 @@ export default function CreateNote() {
                   //     ? () => unarchiveNote.mutate({ id: note.id })
                   //     : () => archiveNote.mutate({ id: note.id })
                   // }
-                  className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                  className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                 >
                   {status === "ARCHIVED" ? (
                     <BiArchiveOut size={18} />
@@ -356,7 +376,7 @@ export default function CreateNote() {
                     <button
                       type="button"
                       // onFocus={() => setBtnFocused(true)}
-                      className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                      className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                     >
                       <MdMoreVert size={18} />
                     </button>
@@ -364,12 +384,12 @@ export default function CreateNote() {
                 </Tooltip>
 
                 <Popover.Content sideOffset={-1} align="start" className="z-10">
-                  <ul className="rounded-md border border-black/10 bg-white py-1 shadow-md">
+                  <ul className="rounded-md border border-solid border-black/10 bg-gray-50 py-1 shadow-md dark:border-white/10 dark:bg-gray-900">
                     <li className="flex items-center">
                       <button
                         type="button"
                         onClick={() => console.log("Add label")}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
+                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/10 dark:text-white dark:hover:bg-white/10"
                       >
                         Add label
                       </button>
@@ -378,7 +398,7 @@ export default function CreateNote() {
                       <button
                         type="button"
                         onClick={() => console.log("Add drawing")}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
+                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/10 dark:text-white dark:hover:bg-white/10"
                       >
                         Add drawing
                       </button>
@@ -387,7 +407,7 @@ export default function CreateNote() {
                       <button
                         type="button"
                         onClick={() => console.log("Show checkboxes")}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-gray-100"
+                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/10 dark:text-white dark:hover:bg-white/10"
                       >
                         Show checkboxes
                       </button>
@@ -398,22 +418,22 @@ export default function CreateNote() {
               <Tooltip text="Undo">
                 <button
                   type="button"
-                  className="rounded-full p-[8px] text-black/30 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                  className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                 >
                   <BiUndo size={18} />
                 </button>
               </Tooltip>
-              <Tooltip text="Undo">
+              <Tooltip text="Redo">
                 <button
                   type="button"
-                  className="rounded-full p-[8px] text-black/30 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60"
+                  className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                 >
                   <BiRedo size={18} />
                 </button>
               </Tooltip>
             </div>
             <button
-              className="h-8 self-end rounded px-6 text-sm font-medium hover:bg-black/10"
+              className="h-8 self-end rounded px-6 text-sm font-medium hover:bg-black/10 dark:hover:bg-white/10"
               type="button"
               onClick={() => {
                 setNoteColor("default");
@@ -434,7 +454,7 @@ export default function CreateNote() {
           <Tooltip text="New list">
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black/50"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black/50 dark:text-white/30 dark:hover:bg-white/20 dark:hover:text-white/50"
               onClick={() => setFormFocused(true)}
             >
               <BiCheckSquare className="h-6 w-6" />
@@ -443,7 +463,7 @@ export default function CreateNote() {
           <Tooltip text="New note with drawing">
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black/50"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black/50 dark:text-white/30 dark:hover:bg-white/20 dark:hover:text-white/50"
               onClick={() => setFormFocused(true)}
             >
               <BiPaint className="h-6 w-6" />
@@ -452,7 +472,7 @@ export default function CreateNote() {
           <Tooltip text="New note with image">
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black/50"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black/50 dark:text-white/30 dark:hover:bg-white/20 dark:hover:text-white/50"
               onClick={() => setFormFocused(true)}
             >
               <BiImageAdd className="h-6 w-6" />
