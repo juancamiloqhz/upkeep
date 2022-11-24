@@ -6,11 +6,11 @@ import { BiAlarm, BiArchiveIn } from "react-icons/bi";
 import { FiEdit3, FiTrash2 } from "react-icons/fi";
 
 const sidebarButtonList = [
-  { icon: TiFlashOutline, title: "Notes", pathname: "/#home" },
-  { icon: BiAlarm, title: "Reminders", pathname: "/#reminders" },
-  { icon: FiEdit3, title: "Edit labels", pathname: "/#labels" },
-  { icon: BiArchiveIn, title: "Archive", pathname: "/#archive" },
-  { icon: FiTrash2, title: "Trash", pathname: "/#trash" },
+  { icon: TiFlashOutline, title: "Notes", paths: ["/#home", "/"] },
+  { icon: BiAlarm, title: "Reminders", paths: ["/#reminders"] },
+  { icon: FiEdit3, title: "Edit labels", paths: ["/#labels"] },
+  { icon: BiArchiveIn, title: "Archive", paths: ["/#archive"] },
+  { icon: FiTrash2, title: "Trash", paths: ["/#trash"] },
 ];
 
 export default function Sidebar({
@@ -35,7 +35,7 @@ export default function Sidebar({
               key={button.title}
               text={button.title}
               Icon={button.icon}
-              path={button.pathname}
+              paths={button.paths}
             />
           ))}
         </div>
@@ -154,11 +154,11 @@ export default function Sidebar({
 function SidebarBtn({
   Icon,
   text,
-  path,
+  paths,
 }: {
   Icon: IconType;
   text: string;
-  path: string;
+  paths: string[];
 }) {
   const { asPath, push } = useRouter();
   return (
@@ -170,11 +170,11 @@ function SidebarBtn({
       // } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] flex h-14 max-w-[288px] items-center whitespace-nowrap bg-blue-100 transition-all duration-100`}
       //   className="ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] ml-2 flex h-14 w-14 max-w-[288px] items-center justify-center whitespace-nowrap rounded-full bg-blue-100 transition-all duration-100 group-hover/sidebar:w-full group-hover/sidebar:rounded-r-full group-hover/sidebar:rounded-l-none group-hover/sidebar:pl-2"
       className={`${
-        asPath === path
+        paths.includes(asPath)
           ? "bg-fuchsia-500/10 text-fuchsia-600 hover:bg-fuchsia-500/10"
           : "text-black/60 hover:bg-black/10"
       } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
-      onClick={() => push(path)}
+      onClick={() => push(paths[0] as string)}
     >
       <Icon />
       <span>{text}</span>

@@ -1,6 +1,6 @@
 import { BiArchiveIn } from "react-icons/bi";
 import { trpc } from "../../utils/trpc";
-import ListNote from "../Note/ListNote";
+import { ListNote } from "../Note";
 
 export default function ArchiveView() {
   const allArchivedNotes = trpc.note.allArchived.useQuery(undefined, {
@@ -9,19 +9,20 @@ export default function ArchiveView() {
   return (
     <>
       {allArchivedNotes.data?.length ? (
-        <ul className="mb-16 flex w-full gap-2 sm:gap-4">
+        <ul className="columns-1 gap-4 pb-16 sm:columns-[240px]">
           {allArchivedNotes.data?.map((note) => (
             <ListNote key={note.id} note={note} />
           ))}
         </ul>
-      ) : (
+      ) : null}
+      {!allArchivedNotes.data?.length && !allArchivedNotes.isLoading ? (
         <div className="absolute top-1/3 left-1/2 flex -translate-x-1/2 -translate-y-1/2 transform flex-col items-center justify-center">
           <BiArchiveIn size={130} className="fill-black/30" />
           <p className="mt-5 text-center text-2xl text-black/30">
             Archived notes appear here
           </p>
         </div>
-      )}
+      ) : null}
     </>
   );
 }

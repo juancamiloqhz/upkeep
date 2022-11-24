@@ -1,8 +1,9 @@
 import React from "react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import * as Popover from "@radix-ui/react-popover";
 import Link from "next/link";
 import { SlMenu } from "react-icons/sl";
-import { MdOutlineCloudDone } from "react-icons/md";
+import { MdOutlineCloudDone, MdAccountCircle } from "react-icons/md";
 import LoadingSpinner from "./LoadingSpinner";
 import Image from "next/image";
 import { useIsFetching, useIsMutating } from "@tanstack/react-query";
@@ -56,7 +57,7 @@ export default function Header({
             <SlMenu size={18} />
           </button>
         </Tooltip>
-        <Link href="/#home">
+        <Link href="/">
           <h1 className="text-2xl font-bold">
             <span className="text-[hsl(280,100%,30%)]">Up</span>
             <span className="text-[hsl(280,100%,70%)]">Keep</span>
@@ -70,26 +71,79 @@ export default function Header({
         ) : (
           <MdOutlineCloudDone size={22} color="hsla(0, 0%, 0%, 0.5)" />
         )}
-        {/* <p className="text-sm">
-          {sessionData && <span>Logged in as {sessionData?.user?.name}</span>}
-        </p> */}
-        {/* <button
-          className="rounded-full bg-black/10 px-6 py-2 font-semibold no-underline transition hover:bg-black/20"
-          onClick={sessionData ? () => signOut() : () => signIn()}
-        >
-          {sessionData ? "Sign out" : "Sign in"}
-        </button> */}
-        <button className="border-3 rounded-full border-solid border-transparent hover:border-black/30">
-          {sessionData?.user?.image ? (
-            <Image
-              src={sessionData?.user?.image}
-              width={32}
-              height={32}
-              className="rounded-full"
-              alt="User profile picture"
-            />
-          ) : null}
-        </button>
+
+        <Popover.Root>
+          <Tooltip text="UpKeep account">
+            <Popover.Trigger asChild>
+              <button
+                className="border-3 rounded-full border-solid border-transparent text-black/50 hover:border-black/30"
+                aria-label="Open account options"
+              >
+                {sessionData?.user?.image ? (
+                  <Image
+                    src={sessionData?.user?.image || ""}
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                    alt="User profile picture"
+                  />
+                ) : (
+                  <MdAccountCircle size={32} />
+                )}
+              </button>
+            </Popover.Trigger>
+          </Tooltip>
+          <Popover.Portal>
+            <Popover.Content
+              sideOffset={3}
+              align="end"
+              className="z-[101] min-w-[350px] rounded-md border border-black/10 bg-white shadow-md"
+            >
+              <div className="flex flex-col">
+                <div className="flex flex-col items-center border-b px-2 py-7">
+                  {sessionData?.user?.image ? (
+                    <Image
+                      src={sessionData?.user?.image || ""}
+                      width={80}
+                      height={80}
+                      className="rounded-full"
+                      alt="User profile picture"
+                    />
+                  ) : (
+                    <MdAccountCircle size={80} className="text-black/50" />
+                  )}
+                  <h3 className="mt-1 font-semibold">
+                    {sessionData?.user?.name}
+                  </h3>
+                  <p className="mt-1 text-sm">{sessionData?.user?.email}</p>
+                  <Link
+                    href="/account"
+                    className="mt-4 rounded-full border border-solid border-black/10 px-5 py-[6px] text-sm font-medium hover:bg-black/10"
+                  >
+                    Manage your UpKeep account
+                  </Link>
+                </div>
+                <div className="flex items-center justify-center border-b px-2 py-4">
+                  <button
+                    className="rounded-sm border border-solid border-black/10 px-4 py-[10px] text-sm font-medium hover:bg-black/10"
+                    onClick={() => signOut()}
+                  >
+                    Sign out
+                  </button>
+                </div>
+                <div className="flex items-center justify-center gap-1 px-1 py-4 text-xs font-light">
+                  <Link href="/privacy-policy" className="hover:underline">
+                    Privacy policy
+                  </Link>
+                  <span>•</span>
+                  <Link href="/terms-of-service" className="hover:underline">
+                    Terms of service
+                  </Link>
+                </div>
+              </div>
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover.Root>
       </div>
     </header>
   );
