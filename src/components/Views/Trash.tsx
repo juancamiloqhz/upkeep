@@ -1,14 +1,15 @@
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { FiTrash2 } from "react-icons/fi";
 import * as Dialog from "@radix-ui/react-dialog";
 import { trpc } from "../../utils/trpc";
 import { ListNote } from "../Note";
+import React from "react";
 
 export default function TrashView() {
   const utils = trpc.useContext();
   const allTrashedNotes = trpc.note.allTrashed.useQuery(undefined, {
     staleTime: 3000,
     refetchOnWindowFocus: false,
+    enabled: false,
   });
   const emptyTrash = trpc.note.deleteMany.useMutation({
     async onMutate() {
@@ -16,8 +17,11 @@ export default function TrashView() {
       utils.note.allTrashed.setData(undefined, () => []);
     },
   });
+  React.useEffect(() => {
+    allTrashedNotes.refetch();
+  }, []);
   return (
-    <LayoutGroup>
+    <>
       {allTrashedNotes.data?.length ? (
         <>
           <p className="mt-6 text-center italic">
@@ -62,17 +66,11 @@ export default function TrashView() {
               </Dialog.Portal>
             </Dialog.Root>
           </p>
-          <motion.ul
-            layout
-            transition={{ bounce: 0 }}
-            className="mt-6 columns-1 gap-4 pb-16 sm:columns-[240px]"
-          >
-            <AnimatePresence>
-              {allTrashedNotes.data?.map((note) => (
-                <ListNote key={note.id} note={note} />
-              ))}
-            </AnimatePresence>
-          </motion.ul>
+          <ul className="mt-6 columns-1 gap-4 pb-16 sm:columns-[240px]">
+            {allTrashedNotes.data?.map((note) => (
+              <ListNote key={note.id} note={note} />
+            ))}
+          </ul>
         </>
       ) : null}
       {!allTrashedNotes.data?.length && !allTrashedNotes.isLoading ? (
@@ -81,11 +79,11 @@ export default function TrashView() {
             size={130}
             className="stroke-black/30 dark:stroke-white/30"
           />
-          <p className="mt-5 text-center text-2xl text-black/30">
+          <p className="mt-5 text-center text-2xl text-black/30 dark:text-white/30">
             No notes in trash
           </p>
         </div>
       ) : null}
-    </LayoutGroup>
+    </>
   );
 }

@@ -41,10 +41,10 @@ export default function CreateNote() {
   const addNote = trpc.note.add.useMutation({
     async onMutate({ title, content, background, color, status }) {
       // console.log("onMutate", res);
-      await utils.note.allActive.cancel();
-      await utils.note.allPinned.cancel();
-      await utils.note.allTrashed.cancel();
-      await utils.note.allArchived.cancel();
+      // await utils.note.allActive.cancel();
+      // await utils.note.allPinned.cancel();
+      // await utils.note.allTrashed.cancel();
+      // await utils.note.allArchived.cancel();
       const allActiveNotes = utils.note.allActive.getData();
       const allPinnedNotes = utils.note.allPinned.getData();
       const newNoteStatus: Note["status"] = status;
@@ -77,8 +77,20 @@ export default function CreateNote() {
       }
       setTitle("");
       setContent("");
-      setBackground("default");
-      setNoteColor("default");
+      // setBackground("default");
+      // setNoteColor("default");
+    },
+    async onSuccess({ status }) {
+      switch (status) {
+        case "ACTIVE":
+          await utils.note.allActive.fetch();
+          break;
+        case "PINNED":
+          await utils.note.allPinned.fetch();
+          break;
+        default:
+          break;
+      }
     },
   });
   // function createNote(e: React.FormEvent<HTMLFormElement>) {

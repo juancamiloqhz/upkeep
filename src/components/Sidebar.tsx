@@ -13,7 +13,7 @@ export default function Sidebar({
 }: {
   forceSidebarOpen: boolean;
 }) {
-  const { asPath, push } = useRouter();
+  const { push, pathname } = useRouter();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   return (
     <div
@@ -28,22 +28,22 @@ export default function Sidebar({
         <div className="sidebar-menu">
           <button
             className={`${
-              ["/#home", "/"].includes(asPath)
+              pathname === "/"
                 ? "bg-fuchsia-500/10 text-fuchsia-600 hover:bg-fuchsia-500/10 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:hover:bg-fuchsia-500/20"
                 : "text-black/60 hover:bg-black/10 dark:text-white/60 dark:hover:bg-white/10"
             } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
-            onClick={() => push("/#home")}
+            onClick={() => push("/")}
           >
             <TiFlashOutline />
             <span>Notes</span>
           </button>
           <button
             className={`${
-              asPath === "/#reminders"
+              pathname === "/reminders"
                 ? "bg-fuchsia-500/10 text-fuchsia-600 hover:bg-fuchsia-500/10 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:hover:bg-fuchsia-500/20"
                 : "text-black/60 hover:bg-black/10 dark:text-white/60 dark:hover:bg-white/10"
             } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
-            onClick={() => push("/#reminders")}
+            onClick={() => push("/reminders")}
           >
             <BiAlarm />
             <span>Reminders</span>
@@ -52,7 +52,7 @@ export default function Sidebar({
             <Dialog.Trigger asChild>
               <button
                 className={`${
-                  asPath === "/#labels"
+                  pathname === "/labels"
                     ? "bg-fuchsia-500/10 text-fuchsia-600 hover:bg-fuchsia-500/10 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:hover:bg-fuchsia-500/20"
                     : "text-black/60 hover:bg-black/10 dark:text-white/60 dark:hover:bg-white/10"
                 } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
@@ -68,8 +68,12 @@ export default function Sidebar({
                   <Dialog.Title className="text-lg font-medium">
                     Edit labels
                   </Dialog.Title>
-                  <Dialog.Description className="text-sm">
-                    <form action="" onSubmit={(e) => e.preventDefault()}>
+                  <Dialog.Description asChild>
+                    <form
+                      action=""
+                      onSubmit={(e) => e.preventDefault()}
+                      className="text-sm"
+                    >
                       <CreateLabelInput />
                       <NoteLabelInput label="a" />
                       <NoteLabelInput label="b" />
@@ -105,22 +109,22 @@ export default function Sidebar({
           </Dialog.Root>
           <button
             className={`${
-              asPath === "/#archive"
+              pathname === "/archive"
                 ? "bg-fuchsia-500/10 text-fuchsia-600 hover:bg-fuchsia-500/10 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:hover:bg-fuchsia-500/20"
                 : "text-black/60 hover:bg-black/10 dark:text-white/60 dark:hover:bg-white/10"
             } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
-            onClick={() => push("/#archive")}
+            onClick={() => push("/archive")}
           >
             <BiArchiveIn />
             <span>Archive</span>
           </button>
           <button
             className={`${
-              asPath === "/#trash"
+              pathname === "/trash"
                 ? "bg-fuchsia-500/10 text-fuchsia-600 hover:bg-fuchsia-500/10 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:hover:bg-fuchsia-500/20"
                 : "text-black/60 hover:bg-black/10 dark:text-white/60 dark:hover:bg-white/10"
             } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
-            onClick={() => push("/#trash")}
+            onClick={() => push("/trash")}
           >
             <FiTrash2 />
             <span>Trash</span>

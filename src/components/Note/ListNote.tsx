@@ -1,5 +1,4 @@
 import React from "react";
-import { motion } from "framer-motion";
 import * as Popover from "@radix-ui/react-popover";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -29,40 +28,50 @@ import { useClickOutside } from "../../utils/helpers";
 import Image from "next/image";
 import { type Note } from "../../types/upkeep";
 import { bgList, colorList } from "../../utils/constants";
+import { useRouter } from "next/router";
 
-const ListNote = ({ note }: { note: Note }) => {
+const ListNote: React.FC<{ note: Note }> = ({ note }) => {
   const ref = React.useRef<HTMLLIElement>(null);
   const [btnFocused, setBtnFocused] = React.useState(false);
+  const router = useRouter();
   const utils = trpc.useContext();
   const trashNote = trpc.note.trash.useMutation({
+    onError(error) {
+      console.log(error);
+    },
+
     async onMutate() {
-      await utils.note.allActive.cancel();
-      await utils.note.allTrashed.cancel();
-      await utils.note.allPinned.cancel();
-      await utils.note.allArchived.cancel();
+      // await utils.note.allActive.cancel();
+      // await utils.note.allTrashed.cancel();
+      // await utils.note.allPinned.cancel();
+      // await utils.note.allArchived.cancel();
       const allActiveNotes = utils.note.allActive.getData();
       const allTrashedNotes = utils.note.allTrashed.getData();
       const allPinnedNotes = utils.note.allPinned.getData();
       const allArchivedNotes = utils.note.allArchived.getData();
       const newStatus: Note["status"] = "TRASH";
       const noteToTrash = { ...note, status: newStatus, updatedAt: new Date() };
-      if (allActiveNotes && note.status === "ACTIVE") {
-        utils.note.allActive.setData(
-          undefined,
-          allActiveNotes.filter((t) => t.id != note.id)
-        );
-      }
-      if (allPinnedNotes && note.status === "PINNED") {
-        utils.note.allPinned.setData(
-          undefined,
-          allPinnedNotes.filter((t) => t.id != note.id)
-        );
-      }
-      if (allArchivedNotes && note.status === "ARCHIVED") {
-        utils.note.allArchived.setData(
-          undefined,
-          allArchivedNotes.filter((t) => t.id != note.id)
-        );
+      switch (note.status) {
+        case "ACTIVE":
+          utils.note.allActive.setData(
+            undefined,
+            allActiveNotes?.filter((n) => n.id !== note.id)
+          );
+          break;
+        case "PINNED":
+          utils.note.allPinned.setData(
+            undefined,
+            allPinnedNotes?.filter((n) => n.id !== note.id)
+          );
+          break;
+        case "ARCHIVED":
+          utils.note.allArchived.setData(
+            undefined,
+            allArchivedNotes?.filter((n) => n.id !== note.id)
+          );
+          break;
+        default:
+          break;
       }
       utils.note.allTrashed.setData(
         undefined,
@@ -80,17 +89,21 @@ const ListNote = ({ note }: { note: Note }) => {
       const allArchivedNotes = utils.note.allArchived.getData();
       const newStatus: Note["status"] = "PINNED";
       const noteToPin = { ...note, status: newStatus, updatedAt: new Date() };
-      if (allActiveNotes && note.status === "ACTIVE") {
-        utils.note.allActive.setData(
-          undefined,
-          allActiveNotes.filter((t) => t.id != note.id)
-        );
-      }
-      if (allArchivedNotes && note.status === "ARCHIVED") {
-        utils.note.allArchived.setData(
-          undefined,
-          allArchivedNotes.filter((t) => t.id != note.id)
-        );
+      switch (note.status) {
+        case "ACTIVE":
+          utils.note.allActive.setData(
+            undefined,
+            allActiveNotes?.filter((n) => n.id !== note.id)
+          );
+          break;
+        case "ARCHIVED":
+          utils.note.allArchived.setData(
+            undefined,
+            allArchivedNotes?.filter((n) => n.id !== note.id)
+          );
+          break;
+        default:
+          break;
       }
       utils.note.allPinned.setData(
         undefined,
@@ -126,17 +139,13 @@ const ListNote = ({ note }: { note: Note }) => {
     async onMutate() {
       await utils.note.allTrashed.cancel();
       const allTrashedNotes = utils.note.allTrashed.getData();
-      if (!allTrashedNotes) {
-        return;
+      if (allTrashedNotes) {
+        utils.note.allTrashed.setData(
+          undefined,
+          allTrashedNotes.filter((t) => t.id != note.id)
+        );
       }
-      utils.note.allTrashed.setData(
-        undefined,
-        allTrashedNotes.filter((t) => t.id != note.id)
-      );
     },
-    // onError(e) {
-    //   console.log("deleting Error: ", e.message);
-    // },
   });
   const restoreNote = trpc.note.restore.useMutation({
     async onMutate() {
@@ -176,17 +185,21 @@ const ListNote = ({ note }: { note: Note }) => {
         status: newStatus,
         updatedAt: new Date(),
       };
-      if (allActiveNotes && note.status === "ACTIVE") {
-        utils.note.allActive.setData(
-          undefined,
-          allActiveNotes.filter((t) => t.id != note.id)
-        );
-      }
-      if (allPinnedNotes && note.status === "PINNED") {
-        utils.note.allPinned.setData(
-          undefined,
-          allPinnedNotes.filter((t) => t.id != note.id)
-        );
+      switch (note.status) {
+        case "ACTIVE":
+          utils.note.allActive.setData(
+            undefined,
+            allActiveNotes?.filter((n) => n.id !== note.id)
+          );
+          break;
+        case "PINNED":
+          utils.note.allPinned.setData(
+            undefined,
+            allPinnedNotes?.filter((n) => n.id !== note.id)
+          );
+          break;
+        default:
+          break;
       }
       utils.note.allArchived.setData(
         undefined,
@@ -297,29 +310,33 @@ const ListNote = ({ note }: { note: Note }) => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      if (note.status === "ACTIVE") {
-        utils.note.allActive.setData(
-          undefined,
-          allActiveNotes ? [newNote, ...allActiveNotes] : [newNote]
-        );
-      }
-      if (note.status === "PINNED") {
-        utils.note.allPinned.setData(
-          undefined,
-          allPinnedNotes ? [newNote, ...allPinnedNotes] : [newNote]
-        );
-      }
-      if (note.status === "ARCHIVED") {
-        utils.note.allArchived.setData(
-          undefined,
-          allArchivedNotes ? [newNote, ...allArchivedNotes] : [newNote]
-        );
-      }
-      if (note.status === "TRASH") {
-        utils.note.allTrashed.setData(
-          undefined,
-          allTrashedNotes ? [newNote, ...allTrashedNotes] : [newNote]
-        );
+      switch (note.status) {
+        case "ACTIVE":
+          utils.note.allActive.setData(
+            undefined,
+            allActiveNotes ? [newNote, ...allActiveNotes] : [newNote]
+          );
+          break;
+        case "PINNED":
+          utils.note.allPinned.setData(
+            undefined,
+            allPinnedNotes ? [newNote, ...allPinnedNotes] : [newNote]
+          );
+          break;
+        case "ARCHIVED":
+          utils.note.allArchived.setData(
+            undefined,
+            allArchivedNotes ? [newNote, ...allArchivedNotes] : [newNote]
+          );
+          break;
+        case "TRASH":
+          utils.note.allTrashed.setData(
+            undefined,
+            allTrashedNotes ? [newNote, ...allTrashedNotes] : [newNote]
+          );
+          break;
+        default:
+          break;
       }
     },
   });
@@ -359,23 +376,24 @@ const ListNote = ({ note }: { note: Note }) => {
   );
 
   return (
-    <motion.li
-      layout
-      // initial={{ opacity: 0 }}
-      // animate={{ opacity: 1 }}
-      // exit={{ opacity: 0 }}
-      // transition={{ bounce: 0 }}
+    <li
       ref={ref}
       tab-index={1}
       key={note.id}
       style={noteStyles}
-      className={`group/li relative mb-4 flex h-fit w-full break-inside-avoid flex-col rounded-lg border border-black/20 bg-gray-50 transition-all duration-200 ease-in-out hover:border-black/30 hover:shadow-md dark:border-white/20 dark:bg-gray-900 sm:w-60`}
+      className={`group/li relative mb-4 flex h-fit w-full break-inside-avoid flex-col rounded-lg border border-black/20 bg-gray-50 transition-all duration-200 ease-in-out hover:shadow-lg dark:border-white/20 dark:bg-gray-900 dark:hover:shadow-black sm:w-60${
+        router.query.noteId === note.id ? " invisible" : ""
+      }`}
     >
       {/* PIN / UNPIN */}
       {note.status !== "TRASH" ? (
         <Tooltip text={note.status === "PINNED" ? "Unpin note" : "Pin note"}>
           <button
-            className={`group/btn invisible absolute top-1 right-1 flex items-center justify-center rounded-full p-[0.4rem] opacity-0 transition-all duration-300 ease-in hover:bg-black/10 group-hover/li:visible group-hover/li:opacity-100 dark:hover:bg-white/20${
+            className={`group/btn invisible absolute top-1 right-1 flex items-center justify-center rounded-full p-[0.4rem] opacity-0 transition-all duration-300 ease-in hover:bg-black/10 ${
+              router.query.noteId === note.id
+                ? "duration-[0ms]"
+                : "group-hover/li:visible"
+            } group-hover/li:opacity-100 dark:hover:bg-white/20${
               btnFocused ? " !visible !opacity-100" : ""
             }`}
             onClick={
@@ -410,7 +428,19 @@ const ListNote = ({ note }: { note: Note }) => {
         </button>
       </Tooltip>
       {/* NOTE CONTENT */}
-      <div className="gap-4 px-3 pb-10 pt-[0.6rem]">
+      <div
+        className="gap-4 px-3 pb-10 pt-[0.6rem]"
+        onClick={() => {
+          router.push(
+            {
+              href: `${router.pathname}?noteId=${note.id}`,
+              // pathname: `/?noteId=[noteId]`,
+              query: { noteId: note.id },
+            },
+            `/note/${note.id}`
+          );
+        }}
+      >
         {note.title ? (
           <h3 className="mr-6 mb-2 font-semibold leading-tight">
             {note.title}
@@ -420,7 +450,11 @@ const ListNote = ({ note }: { note: Note }) => {
       </div>
       {/* NOTE ACTIONS */}
       <div
-        className={`invisible flex items-center justify-between py-1 px-[2px] opacity-0 transition-all duration-300 ease-in group-hover/li:visible group-hover/li:opacity-100${
+        className={`invisible flex items-center justify-between py-1 px-[2px] opacity-0 transition-all duration-300 ease-in ${
+          router.query.noteId === note.id
+            ? "duration-[0ms]"
+            : "group-hover/li:visible"
+        } group-hover/li:opacity-100${
           btnFocused ? " !visible !opacity-100" : ""
         }`}
       >
@@ -854,8 +888,8 @@ const ListNote = ({ note }: { note: Note }) => {
           </>
         )}
       </div>
-    </motion.li>
+    </li>
   );
 };
 
-export default ListNote;
+export default React.memo(ListNote);
