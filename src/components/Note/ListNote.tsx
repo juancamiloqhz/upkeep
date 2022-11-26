@@ -2,8 +2,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import * as Popover from "@radix-ui/react-popover";
 import * as Dialog from "@radix-ui/react-dialog";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { TiPinOutline, TiPin } from "react-icons/ti";
-import { HiOutlineUserPlus } from "react-icons/hi2";
+import { HiOutlineUserPlus, HiOutlineClock } from "react-icons/hi2";
 import {
   MdOutlineColorLens,
   MdMoreVert,
@@ -11,6 +12,9 @@ import {
   MdOutlineDeleteForever,
   MdOutlineHideImage,
   MdOutlineDone,
+  MdChevronRight,
+  MdSearch,
+  MdLocationOn,
 } from "react-icons/md";
 import {
   BiBellPlus,
@@ -118,7 +122,7 @@ const ListNote = ({ note }: { note: Note }) => {
       );
     },
   });
-  const deleteNote = trpc.note.delete.useMutation({
+  const deleteNote = trpc.note.deleteOne.useMutation({
     async onMutate() {
       await utils.note.allTrashed.cancel();
       const allTrashedNotes = utils.note.allTrashed.getData();
@@ -474,16 +478,114 @@ const ListNote = ({ note }: { note: Note }) => {
           </span>
         ) : (
           <>
-            {/* REMINDER */}
-            <Tooltip text="Reminder">
-              <button
-                type="button"
-                onFocus={() => setBtnFocused(true)}
-                className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
-              >
-                <BiBellPlus size={18} />
-              </button>
-            </Tooltip>
+            {/* REMINDER Dropdown */}
+            <DropdownMenu.Root modal={false}>
+              <Tooltip text="Reminder">
+                <DropdownMenu.Trigger asChild>
+                  <button
+                    type="button"
+                    onFocus={() => setBtnFocused(true)}
+                    className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
+                  >
+                    <BiBellPlus size={18} />
+                  </button>
+                </DropdownMenu.Trigger>
+              </Tooltip>
+
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  loop
+                  className="w-[300px] rounded-md border border-black/10 bg-gray-50 py-1 shadow-md dark:border-white/10 dark:bg-gray-900 dark:shadow-black "
+                  sideOffset={-1}
+                  align="start"
+                >
+                  <h3 className="py-4 px-4 text-sm">Reminder:</h3>
+                  <DropdownMenu.Item
+                    // onClick={() => trashNote.mutate({ id: note.id })}
+                    className="flex h-full w-full cursor-pointer items-center justify-between py-2 px-4 text-xs text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10"
+                  >
+                    Later today
+                    <span>8:00 PM</span>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item
+                    // onClick={() => trashNote.mutate({ id: note.id })}
+                    className="flex h-full w-full cursor-pointer items-center justify-between py-2 px-4 text-xs text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10"
+                  >
+                    Tomorrow
+                    <span>8:00 AM</span>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item
+                    // onClick={() => trashNote.mutate({ id: note.id })}
+                    className="flex h-full w-full cursor-pointer items-center justify-between py-2 px-4 text-xs text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10"
+                  >
+                    Next week
+                    <span>Mon, 8:00 AM</span>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Sub>
+                    <DropdownMenu.SubTrigger className="flex h-full w-full cursor-pointer items-center justify-between py-2 pl-4 pr-2 text-xs text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10">
+                      <span className="flex items-center gap-1">
+                        <HiOutlineClock size={16} /> Pick date & time
+                      </span>
+                      <MdChevronRight size={18} />
+                    </DropdownMenu.SubTrigger>
+                    <DropdownMenu.Portal>
+                      <DropdownMenu.SubContent
+                        className="relative w-[200px] rounded-md border border-black/10 bg-gray-50 shadow-md dark:border-white/10 dark:bg-gray-900 dark:shadow-black"
+                        sideOffset={-4}
+                        alignOffset={0}
+                      >
+                        <div className="px-3 py-2">
+                          <h3 className="text-xs font-medium">Label note</h3>
+                          <DropdownMenu.Label className="relative">
+                            <input
+                              id="search-tag"
+                              type="text"
+                              placeholder="Enter label name"
+                              className="w-full border-none bg-gray-50 px-0 py-1 text-xs focus:outline-none dark:border-white/10 dark:bg-gray-900"
+                              autoFocus
+                            />
+                            <span className="absolute top-1/2 right-0 -translate-y-1/2">
+                              <MdSearch size={12} />
+                            </span>
+                          </DropdownMenu.Label>
+                        </div>
+                      </DropdownMenu.SubContent>
+                    </DropdownMenu.Portal>
+                  </DropdownMenu.Sub>
+                  <DropdownMenu.Sub>
+                    <DropdownMenu.SubTrigger className="flex h-full w-full cursor-pointer items-center justify-between py-2 pl-4 pr-2 text-xs text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10">
+                      <span className="flex items-center gap-1">
+                        <MdLocationOn size={18} /> Pick place
+                      </span>
+                      <MdChevronRight size={18} />
+                    </DropdownMenu.SubTrigger>
+                    <DropdownMenu.Portal>
+                      <DropdownMenu.SubContent
+                        className="relative w-[200px] rounded-md border border-black/10 bg-gray-50 shadow-md dark:border-white/10 dark:bg-gray-900 dark:shadow-black"
+                        sideOffset={-4}
+                        alignOffset={0}
+                      >
+                        <div className="px-3 py-2">
+                          <h3 className="text-xs font-medium">Pick place</h3>
+                          <DropdownMenu.Label className="relative">
+                            <input
+                              id="search-tag"
+                              type="text"
+                              placeholder="Choose location"
+                              className="w-full border-b bg-gray-50 px-0 py-1 text-xs focus:outline-none dark:border-white/10 dark:bg-gray-900"
+                              autoFocus
+                            />
+                            <span className="absolute top-1/2 right-0 -translate-y-1/2">
+                              <MdSearch size={12} />
+                            </span>
+                          </DropdownMenu.Label>
+                        </div>
+                      </DropdownMenu.SubContent>
+                    </DropdownMenu.Portal>
+                  </DropdownMenu.Sub>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
             {/* COLLABORATORS */}
             <Tooltip text="Collaborator">
               <button
@@ -662,71 +764,93 @@ const ListNote = ({ note }: { note: Note }) => {
                 )}
               </button>
             </Tooltip>
-            {/* MORE */}
-            <Popover.Root>
+            {/* MORE Dropdown */}
+            <DropdownMenu.Root modal={false}>
               <Tooltip text="More">
-                <Popover.Trigger asChild>
+                <DropdownMenu.Trigger asChild>
                   <button
                     type="button"
-                    onFocus={() => setBtnFocused(true)}
+                    onClick={() => setBtnFocused(true)}
                     className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                   >
                     <MdMoreVert size={18} />
                   </button>
-                </Popover.Trigger>
+                </DropdownMenu.Trigger>
               </Tooltip>
-              <Popover.Portal>
-                <Popover.Content sideOffset={-1} align="start">
-                  <ul className="rounded-md border border-black/10 bg-gray-50 py-1 shadow-md dark:border-white/10 dark:bg-gray-900">
-                    <li className="flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => trashNote.mutate({ id: note.id })}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/20 dark:text-white dark:hover:bg-white/20 "
+
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  loop
+                  className="w-[180px] rounded-md border border-black/10 bg-gray-50 py-1 shadow-md dark:border-white/10 dark:bg-gray-900 dark:shadow-black"
+                  sideOffset={-1}
+                  align="start"
+                >
+                  <DropdownMenu.Item
+                    onClick={() => trashNote.mutate({ id: note.id })}
+                    className="flex h-full w-full cursor-pointer items-center justify-between py-2 pl-4 pr-2 text-sm text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10"
+                  >
+                    Delete note
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Sub>
+                    <DropdownMenu.SubTrigger className="flex h-full w-full cursor-pointer items-center justify-between py-2 pl-4 pr-2 text-sm text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10">
+                      Add label
+                      <MdChevronRight size={18} />
+                    </DropdownMenu.SubTrigger>
+                    <DropdownMenu.Portal>
+                      <DropdownMenu.SubContent
+                        className="relative w-[200px] rounded-md border border-black/10 bg-gray-50 shadow-md dark:border-white/10 dark:bg-gray-900 dark:shadow-black"
+                        sideOffset={-4}
+                        alignOffset={0}
                       >
-                        Delete note
-                      </button>
-                    </li>
-                    <li className="flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => console.log("Add label")}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/20 dark:text-white dark:hover:bg-white/20 "
-                      >
-                        Add label
-                      </button>
-                    </li>
-                    <li className="flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => console.log("Add drawing")}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/20 dark:text-white dark:hover:bg-white/20 "
-                      >
-                        Add drawing
-                      </button>
-                    </li>
-                    <li className="flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => copyNote.mutate({ ...note })}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/20 dark:text-white dark:hover:bg-white/20 "
-                      >
-                        Make a copy
-                      </button>
-                    </li>
-                    <li className="flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => console.log("Show checkboxes")}
-                        className="h-full w-full px-4 py-2 text-sm text-black hover:bg-black/20 dark:text-white dark:hover:bg-white/20 "
-                      >
-                        Show checkboxes
-                      </button>
-                    </li>
-                  </ul>
-                </Popover.Content>
-              </Popover.Portal>
-            </Popover.Root>
+                        <div className="px-3 py-2">
+                          <h3 className="text-xs font-medium">Label note</h3>
+                          <DropdownMenu.Label className="relative">
+                            <input
+                              id="search-tag"
+                              type="text"
+                              placeholder="Enter label name"
+                              className="w-full border-none bg-gray-50 px-0 py-1 text-xs focus:outline-none dark:border-white/10 dark:bg-gray-900"
+                              autoFocus
+                            />
+                            <span className="absolute top-1/2 right-0 -translate-y-1/2">
+                              <MdSearch size={12} />
+                            </span>
+                          </DropdownMenu.Label>
+                        </div>
+                        <div className="max-h-[250px] overflow-y-auto px-3">
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                          <h1>tag</h1>
+                        </div>
+                      </DropdownMenu.SubContent>
+                    </DropdownMenu.Portal>
+                  </DropdownMenu.Sub>
+                  <DropdownMenu.Item className="flex h-full w-full cursor-pointer items-center justify-between py-2 pl-4 pr-2 text-sm text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10">
+                    Add drawing
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item
+                    onClick={() => copyNote.mutate({ ...note })}
+                    className="flex h-full w-full cursor-pointer items-center justify-between py-2 pl-4 pr-2 text-sm text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10"
+                  >
+                    Make a copy
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item className="flex h-full w-full cursor-pointer items-center justify-between py-2 pl-4 pr-2 text-sm text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10">
+                    Show checkboxes
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
           </>
         )}
       </div>

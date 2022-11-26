@@ -11,6 +11,7 @@ import {
   MdAccountCircle,
   MdOutlineSettings,
   MdCheck,
+  MdSearch,
 } from "react-icons/md";
 import { TfiViewGrid, TfiViewList } from "react-icons/tfi";
 import LoadingSpinner from "./LoadingSpinner";
@@ -19,12 +20,14 @@ import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 import Tooltip from "./Radix/Tooltip";
 import { useRouter } from "next/router";
 import { useTheme } from "next-themes";
+import KeyboardShortcutsModal from "./Note/KeyboardShortcutsModal";
 
 export default function Header({
   setForceSidebarOpen,
 }: {
   setForceSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
   const { resolvedTheme, setTheme } = useTheme();
   const [loading, setLoading] = React.useState(false);
   const [hasScroll, setHasScroll] = React.useState(false);
@@ -57,9 +60,9 @@ export default function Header({
 
   return (
     <header
-      className={`fixed top-0 z-[101] flex h-16 w-full items-center justify-between bg-gray-50 px-4 py-2 transition-shadow dark:bg-gray-900 ${
+      className={`fixed top-0 z-[101] grid h-16 w-full grid-cols-[auto_auto] items-center gap-6 bg-gray-50 px-4 transition-shadow dark:bg-gray-900 md:grid-cols-[minmax(160px,_220px)_minmax(300px,_600px)_1fr] ${
         hasScroll
-          ? "shadow-md"
+          ? "shadow-md dark:shadow-black"
           : "border-b border-black/10 dark:border-white/10"
       }`}
     >
@@ -87,12 +90,35 @@ export default function Header({
         {router.asPath === "/#trash" ? (
           <h1 className="text-xl">Trash</h1>
         ) : null}
+        {router.asPath === "/#reminders" ? (
+          <h1 className="text-xl">Reminders</h1>
+        ) : null}
         {router.asPath === "/#archive" ? (
           <h1 className="text-xl">Archive</h1>
         ) : null}
       </div>
 
-      <div className="flex items-center gap-4">
+      {/* Search Bar */}
+      <div className="relative hidden w-full md:block">
+        <Label.Root htmlFor="search" className="hidden">
+          Search notes
+        </Label.Root>
+        <input
+          ref={searchInputRef}
+          type="text"
+          id="search"
+          placeholder="Search notes"
+          className="group/input h-12 w-full rounded-lg bg-gray-200 py-2 pl-14 pr-4 transition focus:border-transparent focus:shadow-md focus:outline-none dark:bg-gray-700 dark:focus:bg-gray-900 dark:focus:shadow-black"
+        />
+        <button
+          className="absolute top-1/2 left-[6px] flex -translate-y-1/2 items-center justify-center rounded-full p-2 hover:bg-black/20 dark:hover:bg-white/20"
+          onClick={() => searchInputRef.current?.focus()}
+        >
+          <MdSearch size={24} />
+        </button>
+      </div>
+
+      <div className="flex items-center gap-1 justify-self-end md:gap-4">
         {/* Loading */}
         <div className="rounded-full p-[12px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60">
           {loading ? <LoadingSpinner /> : <MdOutlineCloudDone size={22} />}
@@ -334,154 +360,7 @@ export default function Header({
                   </button>
                 </li>
                 <li className="flex items-center">
-                  <Dialog.Root>
-                    <Dialog.Trigger asChild>
-                      <button
-                        type="button"
-                        className="h-full w-full px-4 py-2 text-sm hover:bg-black/10 focus:bg-black/10 dark:hover:bg-white/10"
-                      >
-                        Keyboard shortcuts
-                      </button>
-                    </Dialog.Trigger>
-
-                    <Dialog.Portal>
-                      <Dialog.Overlay className="fixed inset-0 z-[9999] bg-black/80" />
-                      <Dialog.Content className="fixed top-1/2 left-1/2 z-[9999] flex h-[85vh] max-h-[500px] w-[90vw] max-w-[550px] -translate-x-1/2 -translate-y-1/2 transform flex-col justify-between rounded-md border-black/20 bg-gray-50 pb-6 shadow-md focus:outline-none dark:border-white/30 dark:bg-gray-900">
-                        <Dialog.Title className="border-b p-4 text-xl font-medium">
-                          Keyboard shortcuts
-                        </Dialog.Title>
-                        <Dialog.Description className="overflow-y-auto p-4">
-                          <form action="" onSubmit={(e) => e.preventDefault()}>
-                            <h3 className="mb-4 text-sm font-semibold">
-                              Navigation
-                            </h3>
-                            <div className="">
-                              <div className="flex items-center justify-between border-b border-black/30 py-1 dark:border-white/30">
-                                <p className="text-sm text-black/60 dark:text-white/60">
-                                  Navigate to next/previous note
-                                </p>
-                                <div className="flex w-36 items-center">
-                                  <kbd className="rounded bg-gray-200 px-2 py-1 text-sm font-bold dark:bg-black">
-                                    j / k
-                                  </kbd>
-                                </div>
-                              </div>
-                              <div className="flex items-center justify-between border-b border-black/30 py-1 dark:border-white/30">
-                                <p className="text-sm text-black/60 dark:text-white/60">
-                                  Move note to next/previous position
-                                </p>
-                                <div className="flex w-36 items-center">
-                                  <kbd className="rounded bg-gray-200 px-2 py-1 text-sm font-bold dark:bg-black">
-                                    Shift + j / k
-                                  </kbd>
-                                </div>
-                              </div>
-                              <div className="flex items-center justify-between border-b border-black/30 py-1 dark:border-white/30">
-                                <p className="text-sm text-black/60 dark:text-white/60">
-                                  Navigate to next/previous list item
-                                </p>
-                                <div className="flex w-36 items-center">
-                                  <kbd className="rounded bg-gray-200 px-2 py-1 text-sm font-bold dark:bg-black">
-                                    n / p
-                                  </kbd>
-                                </div>
-                              </div>
-                              <div className="flex items-center justify-between border-b border-black/30 py-1 dark:border-white/30">
-                                <p className="text-sm text-black/60 dark:text-white/60">
-                                  Move list item to next/previous position
-                                </p>
-                                <div className="flex w-36 items-center">
-                                  <kbd className="rounded bg-gray-200 px-2 py-1 text-sm font-bold dark:bg-black">
-                                    Shift + n / p
-                                  </kbd>
-                                </div>
-                              </div>
-                            </div>
-                            <h3 className="mb-4 mt-5 text-sm font-semibold">
-                              Application
-                            </h3>
-                            <div className="space-y-6">
-                              <div className="flex items-center justify-between">
-                                <Label.Root
-                                  className="select-none text-xs leading-none"
-                                  htmlFor="morning"
-                                >
-                                  Morning
-                                </Label.Root>
-                                <input
-                                  className="w-36 border-b border-solid border-black/30 bg-gray-50 px-2 text-sm focus:border-black focus:outline-none dark:border-white/30 dark:bg-gray-900 dark:focus:border-white"
-                                  type="text"
-                                  id="morning"
-                                  defaultValue="6:00 AM"
-                                />
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <Label.Root
-                                  className="select-none text-xs leading-none"
-                                  htmlFor="afternoon"
-                                >
-                                  Afternoon
-                                </Label.Root>
-                                <input
-                                  className="w-36 border-b border-solid border-black/30 bg-gray-50 px-2 text-sm focus:border-black focus:outline-none dark:border-white/30 dark:bg-gray-900 dark:focus:border-white"
-                                  type="text"
-                                  id="afternoon"
-                                  defaultValue="1:00 PM"
-                                />
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <Label.Root
-                                  className="select-none text-xs leading-none"
-                                  htmlFor="evening"
-                                >
-                                  Evening
-                                </Label.Root>
-                                <input
-                                  className="w-36 border-b border-solid border-black/30 bg-gray-50 px-2 text-sm focus:border-black focus:outline-none dark:border-white/30 dark:bg-gray-900 dark:focus:border-white"
-                                  type="text"
-                                  id="evening"
-                                  defaultValue="6:00 PM"
-                                />
-                              </div>
-                            </div>
-                            <h3 className="mb-4 mt-5 text-sm font-semibold">
-                              Actions
-                            </h3>
-                            <div className="flex items-center justify-between">
-                              <label
-                                className="select-none text-xs leading-none"
-                                htmlFor="enable-sharing"
-                              >
-                                Enable sharing
-                              </label>
-                              <Checkbox.Root
-                                className="flex h-4 w-4 items-center justify-center rounded border-2 border-solid border-black/30 bg-gray-50 hover:bg-gray-100 focus:border-black dark:border-white/30 dark:bg-gray-900 hover:dark:bg-black dark:focus:border-white"
-                                defaultChecked
-                                id="enable-sharing"
-                              >
-                                <Checkbox.Indicator className="text-black dark:text-white">
-                                  <MdCheck />
-                                </Checkbox.Indicator>
-                              </Checkbox.Root>
-                            </div>
-                            <h3 className="mb-4 mt-5 text-sm font-semibold">
-                              Editor
-                            </h3>
-                          </form>
-                        </Dialog.Description>
-                        <Tooltip text="Close">
-                          <Dialog.Close asChild>
-                            <button
-                              className="absolute top-3 right-3 inline-flex h-6 w-6 items-center justify-center rounded-full"
-                              aria-label="Close"
-                            >
-                              {/* <Cross2Icon /> */}x
-                            </button>
-                          </Dialog.Close>
-                        </Tooltip>
-                      </Dialog.Content>
-                    </Dialog.Portal>
-                  </Dialog.Root>
+                  <KeyboardShortcutsModal />
                 </li>
               </ul>
             </Popover.Content>
@@ -492,7 +371,7 @@ export default function Header({
           <Tooltip text="UpKeep account">
             <Popover.Trigger asChild>
               <button
-                className="border-3 rounded-full border-solid border-transparent text-black/50 hover:border-black/30 dark:text-white/50 dark:hover:border-white/30"
+                className="border-3 h-8 w-8 rounded-full border-solid border-transparent text-black/50 hover:border-black/30 focus:border-black/30 dark:text-white/50 dark:hover:border-white/30 dark:focus:border-white/30"
                 aria-label="Open account options"
               >
                 {sessionData?.user?.image ? (

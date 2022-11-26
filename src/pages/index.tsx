@@ -6,7 +6,12 @@ import { trpc } from "../utils/trpc";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { useRouter } from "next/router";
-import { HomeView, ArchiveView, TrashView } from "../components/Views";
+import {
+  HomeView,
+  ArchiveView,
+  TrashView,
+  RemindersView,
+} from "../components/Views";
 import { CreateNote } from "../components/Note";
 
 const Home: NextPage = () => {
@@ -47,6 +52,7 @@ const Home: NextPage = () => {
           ) : null}
           {router.asPath === "/#archive" ? <ArchiveView /> : null}
           {router.asPath === "/#trash" ? <TrashView /> : null}
+          {router.asPath === "/#reminders" ? <RemindersView /> : null}
         </div>
       </div>
     </>

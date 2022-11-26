@@ -5,9 +5,16 @@ import { trpc } from "../../utils/trpc";
 import { ListNote } from "../Note";
 
 export default function TrashView() {
+  const utils = trpc.useContext();
   const allTrashedNotes = trpc.note.allTrashed.useQuery(undefined, {
     staleTime: 3000,
     refetchOnWindowFocus: false,
+  });
+  const emptyTrash = trpc.note.deleteMany.useMutation({
+    async onMutate() {
+      await utils.note.allTrashed.cancel();
+      utils.note.allTrashed.setData(undefined, () => []);
+    },
   });
   return (
     <LayoutGroup>
@@ -40,7 +47,11 @@ export default function TrashView() {
                     <Dialog.Close asChild>
                       <button
                         className="h-9 rounded-md px-6 text-sm font-medium text-blue-500 hover:bg-black/10 focus:bg-black/10 focus:outline-none dark:text-blue-400 dark:hover:bg-white/10 dark:focus:bg-white/10"
-                        // onClick={() => deleteNote.mutate({ id: note.id })}
+                        onClick={() =>
+                          emptyTrash.mutate({
+                            ids: allTrashedNotes.data.map((note) => note.id),
+                          })
+                        }
                         type="button"
                       >
                         Delete

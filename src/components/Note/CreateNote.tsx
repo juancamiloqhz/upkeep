@@ -139,7 +139,7 @@ export default function CreateNote() {
   return (
     <form
       ref={formRef}
-      className="bg-grey-40 relative mx-auto mb-16 mt-6 flex max-w-xl flex-col rounded-xl border border-black/10 shadow-lg dark:border-white/20 dark:bg-gray-900"
+      className="bg-grey-40 relative mx-auto mb-16 mt-6 flex max-w-xl flex-col rounded-xl border border-black/10 shadow-md dark:border-white/20 dark:bg-gray-900 dark:shadow-black"
       onSubmit={(e) => e.preventDefault()}
       action=""
       onFocus={() => setFormFocused(true)}
@@ -454,7 +454,7 @@ export default function CreateNote() {
           <Tooltip text="New list">
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black/50 dark:text-white/30 dark:hover:bg-white/20 dark:hover:text-white/50"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black dark:text-white/30 dark:hover:bg-white/20 dark:hover:text-white"
               onClick={() => setFormFocused(true)}
             >
               <BiCheckSquare className="h-6 w-6" />
@@ -463,7 +463,7 @@ export default function CreateNote() {
           <Tooltip text="New note with drawing">
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black/50 dark:text-white/30 dark:hover:bg-white/20 dark:hover:text-white/50"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black dark:text-white/30 dark:hover:bg-white/20 dark:hover:text-white"
               onClick={() => setFormFocused(true)}
             >
               <BiPaint className="h-6 w-6" />
@@ -472,7 +472,7 @@ export default function CreateNote() {
           <Tooltip text="New note with image">
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black/50 dark:text-white/30 dark:hover:bg-white/20 dark:hover:text-white/50"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black dark:text-white/30 dark:hover:bg-white/20 dark:hover:text-white"
               onClick={() => setFormFocused(true)}
             >
               <BiImageAdd className="h-6 w-6" />

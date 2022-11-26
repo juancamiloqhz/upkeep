@@ -173,12 +173,23 @@ export const noteRouter = router({
         },
       });
     }),
-  delete: protectedProcedure
+  deleteOne: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(({ ctx, input }) => {
       return ctx.prisma.note.delete({
         where: {
           id: input.id,
+        },
+      });
+    }),
+  deleteMany: protectedProcedure
+    .input(z.object({ ids: z.array(z.string()) }))
+    .mutation(({ ctx, input }) => {
+      return ctx.prisma.note.deleteMany({
+        where: {
+          id: {
+            in: input.ids,
+          },
         },
       });
     }),
