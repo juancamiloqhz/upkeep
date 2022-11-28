@@ -4,17 +4,39 @@ import { useRouter } from "next/router";
 import { TiFlashOutline } from "react-icons/ti";
 import { BiAlarm, BiArchiveIn, BiPlus } from "react-icons/bi";
 import { FiEdit3, FiTrash2 } from "react-icons/fi";
-import { MdOutlineClose, MdCheck, MdLabel, MdEdit } from "react-icons/md";
+import {
+  MdOutlineClose,
+  MdCheck,
+  MdLabel,
+  MdEdit,
+  MdLabelOutline,
+} from "react-icons/md";
 import { IoMdTrash } from "react-icons/io";
+import * as RadixLabel from "@radix-ui/react-label";
 import Tooltip from "./Radix/Tooltip";
+import { trpc } from "../utils/trpc";
+import { type Label } from "@prisma/client";
 
 export default function Sidebar({
   forceSidebarOpen,
 }: {
   forceSidebarOpen: boolean;
 }) {
-  const { push, pathname } = useRouter();
+  const { push, pathname, asPath } = useRouter();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const allLabels = trpc.label.all.useQuery(undefined, {
+    staleTime: 3000,
+    refetchOnWindowFocus: false,
+    enabled: false,
+    // onSuccess: (data) => {
+    //   console.log("allLabels", data);
+    // },
+  });
+
+  React.useEffect(() => {
+    allLabels.refetch();
+  }, []);
+
   return (
     <div
       className={`sidebar${sidebarOpen || forceSidebarOpen ? " open" : ""}`}
@@ -23,9 +45,10 @@ export default function Sidebar({
     >
       <div
         className={`sidebar-placeholder${forceSidebarOpen ? " open" : ""}`}
-      ></div>
+      />
       <div className="sidebar-inner bg-gray-50 dark:bg-gray-900">
         <div className="sidebar-menu">
+          {/* Notes */}
           <button
             className={`${
               pathname === "/"
@@ -37,6 +60,7 @@ export default function Sidebar({
             <TiFlashOutline />
             <span>Notes</span>
           </button>
+          {/* Reminders */}
           <button
             className={`${
               pathname === "/reminders"
@@ -48,6 +72,22 @@ export default function Sidebar({
             <BiAlarm />
             <span>Reminders</span>
           </button>
+          {/* Labels */}
+          {allLabels.data?.map((label: Label) => (
+            <button
+              key={label.id}
+              className={`${
+                asPath === `/label/${label.id}`
+                  ? "bg-fuchsia-500/10 text-fuchsia-600 hover:bg-fuchsia-500/10 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:hover:bg-fuchsia-500/20"
+                  : "text-black/60 hover:bg-black/10 dark:text-white/60 dark:hover:bg-white/10"
+              } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
+              onClick={() => push(`/label/${label.id}`)}
+            >
+              <MdLabelOutline />
+              <span>{label.name}</span>
+            </button>
+          ))}
+          {/* Edit Labels */}
           <Dialog.Root>
             <Dialog.Trigger asChild>
               <button
@@ -69,29 +109,12 @@ export default function Sidebar({
                     Edit labels
                   </Dialog.Title>
                   <Dialog.Description asChild>
-                    <form
-                      action=""
-                      onSubmit={(e) => e.preventDefault()}
-                      className="text-sm"
-                    >
+                    <div className="text-sm">
                       <CreateLabelInput />
-                      <NoteLabelInput label="a" />
-                      <NoteLabelInput label="b" />
-                      <NoteLabelInput label="c" />
-                      <NoteLabelInput label="d" />
-                      <NoteLabelInput label="e" />
-                      <NoteLabelInput label="f" />
-                      <NoteLabelInput label="g" />
-                      <NoteLabelInput label="h" />
-                      <NoteLabelInput label="i" />
-                      <NoteLabelInput label="j" />
-                      <NoteLabelInput label="k" />
-                      <NoteLabelInput label="l" />
-                      <NoteLabelInput label="m" />
-                      <NoteLabelInput label="n" />
-                      <NoteLabelInput label="o" />
-                      <NoteLabelInput label="p" />
-                    </form>
+                      {allLabels.data?.map((label) => (
+                        <NoteLabelInput key={label.id} label={label} />
+                      ))}
+                    </div>
                   </Dialog.Description>
                 </div>
                 <div className="flex justify-end border-t border-black/20 p-4 dark:border-white/20">
@@ -107,6 +130,7 @@ export default function Sidebar({
               </Dialog.Content>
             </Dialog.Portal>
           </Dialog.Root>
+          {/* Archive */}
           <button
             className={`${
               pathname === "/archive"
@@ -118,6 +142,7 @@ export default function Sidebar({
             <BiArchiveIn />
             <span>Archive</span>
           </button>
+          {/* Trash */}
           <button
             className={`${
               pathname === "/trash"
@@ -130,6 +155,7 @@ export default function Sidebar({
             <span>Trash</span>
           </button>
         </div>
+        {/* Sidebar Bottom */}
         <div className="sidebar-bottom">
           <a
             href="https://github.com/juancamiloqhz"
@@ -156,7 +182,8 @@ export default function Sidebar({
           position: fixed;
           top: 64px;
           padding-top: 8px;
-          overflow: hidden;
+          overflow-y: auto;
+          overflow-x: hidden;
           min-height: auto;
           height: calc(100vh - 64px);
           display: flex;
@@ -243,11 +270,41 @@ export default function Sidebar({
 
 function CreateLabelInput() {
   const ref = React.useRef<HTMLInputElement>(null);
-  const [text, setText] = React.useState("");
+  const [name, setName] = React.useState("");
   const [state, setState] = React.useState({
     focused: false,
     create: false,
   });
+  const utils = trpc.useContext();
+  const addLabel = trpc.label.add.useMutation({
+    async onMutate({ name, color }) {
+      const allLabels = utils.label.all.getData();
+      const newLabel = {
+        id: `${Math.random()}`,
+        name,
+        color: color || null,
+        userId: `${Math.random()}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      utils.label.all.setData(undefined, [newLabel, ...(allLabels || [])]);
+
+      setName("");
+      // setContent("");
+      // setBackground("default");
+      // setNoteColor("default");
+    },
+    async onSuccess() {
+      await utils.label.all.fetch();
+    },
+  });
+
+  function handleCreateLabel(e: React.FormEvent) {
+    e.preventDefault();
+    if (name) {
+      addLabel.mutate({ name });
+    }
+  }
 
   return (
     <div className="flex h-11 items-center">
@@ -270,40 +327,172 @@ function CreateLabelInput() {
           {state.focused ? <MdOutlineClose size={20} /> : <BiPlus size={20} />}
         </button>
       </Tooltip>
-      <input
-        ref={ref}
-        type="text"
-        className="w-full border-b border-transparent bg-transparent font-semibold placeholder:text-black focus:border-b  focus:border-black/60 focus:outline-none dark:placeholder:text-white dark:focus:border-white/60"
-        placeholder="Create new label"
-        value={text}
-        autoFocus
-        onChange={(e) => setText(e.target.value)}
-        onFocus={() => setState(() => ({ create: true, focused: true }))}
-      />
-      <Tooltip text="Create label">
-        <button
-          type="button"
-          className={`ml-4 rounded-full p-1 text-black/60 hover:bg-black/10 hover:text-black dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white${
-            state.create ? " visible" : " invisible"
-          }`}
-          onClick={() => {
-            if (text) {
-              setText("");
-            }
-          }}
-        >
-          <MdCheck size={20} />
-        </button>
-      </Tooltip>
+      <form onSubmit={handleCreateLabel} className="flex items-center">
+        <RadixLabel.Root htmlFor="label-name" className="hidden">
+          Create new label
+        </RadixLabel.Root>
+        <input
+          id="label-name"
+          ref={ref}
+          type="text"
+          className="w-full border-b border-transparent bg-transparent font-semibold placeholder:text-black focus:border-b  focus:border-black/60 focus:outline-none dark:placeholder:text-white dark:focus:border-white/60"
+          placeholder="Create new label"
+          value={name}
+          autoFocus
+          onChange={(e) => setName(e.target.value)}
+          onFocus={() => setState(() => ({ create: true, focused: true }))}
+        />
+        <Tooltip text="Create label">
+          <button
+            type="submit"
+            className={`ml-4 rounded-full p-1 text-black/60 hover:bg-black/10 hover:text-black dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white${
+              state.create ? " visible" : " invisible"
+            }`}
+          >
+            <MdCheck size={20} />
+          </button>
+        </Tooltip>
+      </form>
     </div>
   );
 }
 
-function NoteLabelInput({ label }: { label: string }) {
+function NoteLabelInput({ label }: { label: Label }) {
   const ref = React.useRef<HTMLInputElement>(null);
   const [focused, setFocused] = React.useState(false);
   const [hovered, setHovered] = React.useState(false);
-  const [text, setText] = React.useState(label);
+  const [name, setName] = React.useState(label.name);
+  const utils = trpc.useContext();
+  const deleteLabel = trpc.label.deleteOne.useMutation({
+    async onMutate() {
+      const allLabels = utils.label.all.getData();
+      const allActiveNotes = utils.note.allActive.getData();
+      const allArchivedNotes = utils.note.allArchived.getData();
+      const allPinnedNotes = utils.note.allPinned.getData();
+      const allTrashedNotes = utils.note.allTrashed.getData();
+      if (allLabels) {
+        utils.label.all.setData(
+          undefined,
+          allLabels.filter((t) => t.id != label.id)
+        );
+      }
+      if (allActiveNotes) {
+        utils.note.allActive.setData(
+          undefined,
+          allActiveNotes.map((note) => ({
+            ...note,
+            labels: note.labels.filter((t) => t.id != label.id),
+          }))
+        );
+      }
+      if (allArchivedNotes) {
+        utils.note.allArchived.setData(
+          undefined,
+          allArchivedNotes.map((note) => ({
+            ...note,
+            labels: note.labels.filter((t) => t.id != label.id),
+          }))
+        );
+      }
+      if (allPinnedNotes) {
+        utils.note.allPinned.setData(
+          undefined,
+          allPinnedNotes.map((note) => ({
+            ...note,
+            labels: note.labels.filter((t) => t.id != label.id),
+          }))
+        );
+      }
+      if (allTrashedNotes) {
+        utils.note.allTrashed.setData(
+          undefined,
+          allTrashedNotes.map((note) => ({
+            ...note,
+            labels: note.labels.filter((t) => t.id != label.id),
+          }))
+        );
+      }
+    },
+    // async onSuccess() {
+    //   await utils.label.all.fetch();
+    // },
+  });
+  const editLabel = trpc.label.edit.useMutation({
+    async onMutate({ name, color }) {
+      const allLabels = utils.label.all.getData();
+      const allActiveNotes = utils.note.allActive.getData();
+      const allArchivedNotes = utils.note.allArchived.getData();
+      const allPinnedNotes = utils.note.allPinned.getData();
+      const allTrashedNotes = utils.note.allTrashed.getData();
+      const editedLabel = {
+        name: name || label.name,
+        color: color || null,
+      };
+      if (allLabels) {
+        utils.label.all.setData(
+          undefined,
+          allLabels.map((t) =>
+            t.id === label.id ? { ...t, ...editedLabel } : t
+          )
+        );
+      }
+      if (allActiveNotes) {
+        utils.note.allActive.setData(
+          undefined,
+          allActiveNotes.map((note) => ({
+            ...note,
+            labels: note.labels.map((t) =>
+              t.id === label.id ? { ...t, ...editedLabel } : t
+            ),
+          }))
+        );
+      }
+      if (allArchivedNotes) {
+        utils.note.allArchived.setData(
+          undefined,
+          allArchivedNotes.map((note) => ({
+            ...note,
+            labels: note.labels.map((t) =>
+              t.id === label.id ? { ...t, ...editedLabel } : t
+            ),
+          }))
+        );
+      }
+      if (allPinnedNotes) {
+        utils.note.allPinned.setData(
+          undefined,
+          allPinnedNotes.map((note) => ({
+            ...note,
+            labels: note.labels.map((t) =>
+              t.id === label.id ? { ...t, ...editedLabel } : t
+            ),
+          }))
+        );
+      }
+      if (allTrashedNotes) {
+        utils.note.allTrashed.setData(
+          undefined,
+          allTrashedNotes.map((note) => ({
+            ...note,
+            labels: note.labels.map((t) =>
+              t.id === label.id ? { ...t, ...editedLabel } : t
+            ),
+          }))
+        );
+      }
+    },
+    async onSuccess() {
+      await utils.label.all.fetch();
+    },
+  });
+
+  function handleEditLabel(e: React.FormEvent) {
+    e.preventDefault();
+    if (name && name !== label.name) {
+      editLabel.mutate({ id: label.id, name });
+      ref.current?.blur();
+    }
+  }
 
   return (
     <div
@@ -311,35 +500,77 @@ function NoteLabelInput({ label }: { label: string }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <Tooltip text="Delete label">
-        <button
-          type="button"
-          className="mr-2 rounded-full p-1 text-black/60 hover:bg-black/10 hover:text-black dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
-          onClick={() => console.log("deleting label")}
-        >
-          {hovered || focused ? <IoMdTrash size={18} /> : <MdLabel size={18} />}
-        </button>
-      </Tooltip>
-      <input
-        ref={ref}
-        type="text"
-        className="w-full border-b border-transparent bg-transparent font-semibold placeholder:text-black focus:border-b  focus:border-black focus:outline-none dark:placeholder:text-white dark:focus:border-white"
-        placeholder="Enter label name"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-      />
+      {/* Delete Dialog Modal */}
+      <Dialog.Root>
+        <Tooltip text="Delete label">
+          <Dialog.Trigger asChild>
+            <button
+              type="button"
+              className="mr-2 rounded-full p-1 text-black/60 hover:bg-black/10 hover:text-black dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
+            >
+              {hovered || focused ? (
+                <IoMdTrash size={18} />
+              ) : (
+                <MdLabel size={18} />
+              )}
+            </button>
+          </Dialog.Trigger>
+        </Tooltip>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[9999] bg-black/80" />
+          <Dialog.Content className="fixed top-1/2 left-1/2 z-[9999] flex max-h-[85vh] min-h-[120px] w-[90vw] max-w-[500px] -translate-x-1/2 -translate-y-1/2 transform flex-col justify-between rounded-md border-black/20 bg-gray-50 p-6 pb-4 shadow-md focus:outline-none dark:border-white/30 dark:bg-gray-900">
+            <Dialog.Title className="text-sm ">
+              We’ll delete this label and remove it from all of your UpKeep
+              notes. Your notes won’t be deleted.
+            </Dialog.Title>
+            <div className="flex justify-end gap-2">
+              <Dialog.Close asChild>
+                <button
+                  className="h-9 rounded-md px-6 text-sm font-medium hover:bg-black/10 focus:bg-black/10 focus:outline-none dark:hover:bg-white/10 dark:focus:bg-white/10"
+                  type="button"
+                >
+                  Cancel
+                </button>
+              </Dialog.Close>
+              <Dialog.Close asChild>
+                <button
+                  className="h-9 rounded-md px-6 text-sm font-medium text-blue-500 hover:bg-black/10 focus:bg-black/10 focus:outline-none dark:text-blue-400 dark:hover:bg-white/10 dark:focus:bg-white/10"
+                  onClick={() => deleteLabel.mutate({ id: label.id })}
+                  type="button"
+                >
+                  Delete
+                </button>
+              </Dialog.Close>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+      <form onSubmit={handleEditLabel}>
+        <RadixLabel.Root htmlFor="label-name" className="hidden">
+          Edit label
+        </RadixLabel.Root>
+        <input
+          ref={ref}
+          type="text"
+          className="w-full border-b border-transparent bg-transparent font-semibold placeholder:text-black focus:border-b  focus:border-black focus:outline-none dark:placeholder:text-white dark:focus:border-white"
+          placeholder="Enter label name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onFocus={() => setFocused(true)}
+          // onBlur={() => setFocused(false)}
+        />
+      </form>
       <Tooltip text="Rename label">
         <button
           type="button"
           className={`ml-4 rounded-full p-1 text-black/60 hover:bg-black/10 hover:text-black dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white`}
           onClick={() => {
             if (!focused) {
+              setFocused(true);
               ref.current?.focus();
             } else {
-              if (text !== label) {
-                console.log("renaming label");
+              if (name && name !== label.name) {
+                editLabel.mutate({ id: label.id, name });
               }
               setFocused(false);
             }

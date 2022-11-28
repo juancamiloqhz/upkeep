@@ -1,11 +1,12 @@
 import React from "react";
 import { useClickOutside } from "../../utils/helpers";
-import { trpc } from "../../utils/trpc";
 import Image from "next/image";
+import { type Label, type Note } from "@prisma/client";
 import Tooltip from "../Radix/Tooltip";
+import { trpc } from "../../utils/trpc";
 import { bgList, colorList } from "../../utils/constants";
 import * as Popover from "@radix-ui/react-popover";
-import * as Label from "@radix-ui/react-label";
+import * as RadixLabel from "@radix-ui/react-label";
 import { TiPinOutline, TiPin } from "react-icons/ti";
 import { HiOutlineUserPlus } from "react-icons/hi2";
 import {
@@ -15,6 +16,7 @@ import {
   MdOutlineDeleteForever,
   MdOutlineHideImage,
   MdOutlineDone,
+  MdOutlineClose,
 } from "react-icons/md";
 import {
   BiBellPlus,
@@ -27,16 +29,24 @@ import {
   BiRedo,
 } from "react-icons/bi";
 import { TbDropletOff } from "react-icons/tb";
-import { type Note } from "../../types/upkeep";
+import { useRouter } from "next/router";
 
 export default function CreateNote() {
   const formRef = React.useRef<HTMLFormElement>(null);
   const [formFocused, setFormFocused] = React.useState(false);
+  const [currentLabel, setCurrentLabel] = React.useState<Label | undefined>(
+    undefined
+  );
   const [title, setTitle] = React.useState("");
   const [content, setContent] = React.useState("");
-  const [background, setBackground] = React.useState("default");
-  const [noteColor, setNoteColor] = React.useState("default");
+  const [background, setBackground] = React.useState<string | undefined>(
+    undefined
+  );
+  const [noteColor, setNoteColor] = React.useState<string | undefined>(
+    undefined
+  );
   const [status, setStatus] = React.useState<Note["status"]>("ACTIVE");
+  const router = useRouter();
   const utils = trpc.useContext();
   const addNote = trpc.note.add.useMutation({
     async onMutate({ title, content, background, color, status }) {
@@ -50,14 +60,15 @@ export default function CreateNote() {
       const newNoteStatus: Note["status"] = status;
       const newNote = {
         id: `${Math.random()}`,
-        title: title || "",
-        content: content || "",
-        background: background || "default",
-        color: color || "default",
+        title: title || null,
+        content: content || null,
+        background: background || null,
+        color: color || null,
         status: newNoteStatus,
         authorId: `${Math.random()}`,
         createdAt: new Date(),
         updatedAt: new Date(),
+        labels: [],
       };
       switch (status) {
         case "ACTIVE":
@@ -93,17 +104,6 @@ export default function CreateNote() {
       }
     },
   });
-  // function createNote(e: React.FormEvent<HTMLFormElement>) {
-  //   e.preventDefault();
-  //   if (title || content) {
-  //     addNote.mutate({
-  //       title,
-  //       content,
-  //       background,
-  //       color: noteColor,
-  //     });
-  //   }
-  // }
 
   useClickOutside({
     ref: formRef,
@@ -119,17 +119,15 @@ export default function CreateNote() {
         });
       }
       setFormFocused(false);
-      setBackground("default");
-      setNoteColor("default");
+      setBackground(undefined);
+      setNoteColor(undefined);
       setStatus("ACTIVE");
     },
   });
 
   const formStyles = {
-    ...(noteColor !== "default" && background === "default"
-      ? { backgroundColor: noteColor }
-      : {}),
-    ...(background !== "default" && noteColor === "default"
+    ...(noteColor && !background ? { backgroundColor: noteColor } : {}),
+    ...(background && !noteColor
       ? {
           backgroundImage: `url(${background})`,
           backgroundSize: "cover",
@@ -137,7 +135,7 @@ export default function CreateNote() {
           backgroundRepeat: "no-repeat",
         }
       : {}),
-    ...(noteColor !== "default" && background !== "default"
+    ...(noteColor && background
       ? {
           backgroundColor: noteColor,
           borderColor: noteColor,
@@ -148,18 +146,26 @@ export default function CreateNote() {
         }
       : {}),
   };
+
+  React.useEffect(() => {
+    if (router.pathname === "/label/[id]") {
+      const labels = utils.label.all.getData();
+      if (labels) {
+        setCurrentLabel(labels.find((label) => label.id === router.query.id));
+      }
+    }
+  }, [router.query?.id, router.pathname]);
   return (
     <form
       ref={formRef}
       className="bg-grey-40 relative mx-auto mb-16 mt-6 flex max-w-xl flex-col rounded-xl border border-black/10 shadow-md dark:border-white/20 dark:bg-gray-900 dark:shadow-black"
       onSubmit={(e) => e.preventDefault()}
-      action=""
       onFocus={() => setFormFocused(true)}
       style={formStyles}
     >
-      <Label.Root htmlFor="title" className="hidden">
+      <RadixLabel.Root htmlFor="title" className="hidden">
         Note title
-      </Label.Root>
+      </RadixLabel.Root>
       <input
         type="text"
         name="title"
@@ -171,9 +177,9 @@ export default function CreateNote() {
           !formFocused ? " hidden" : ""
         }`}
       />
-      <Label.Root htmlFor="content" className="hidden">
+      <RadixLabel.Root htmlFor="content" className="hidden">
         Note content
-      </Label.Root>
+      </RadixLabel.Root>
       <textarea
         name="content"
         id="content"
@@ -188,6 +194,7 @@ export default function CreateNote() {
             : " py-3 placeholder:text-black/70 dark:placeholder:text-white/70"
         }`}
       />
+
       {/* <div className="h-9 px-3" contentEditable placeholder="Take a note"></div> */}
       {/* Actions Bar */}
       {formFocused ? (
@@ -212,10 +219,36 @@ export default function CreateNote() {
               )}
             </button>
           </Tooltip>
+          {currentLabel ? (
+            <div className="px-4 py-2">
+              <div
+                key={currentLabel.id}
+                className="group/label relative flex h-6 w-fit cursor-pointer items-center justify-between whitespace-nowrap rounded-full bg-black/10 px-3 text-xs font-medium leading-none dark:bg-white/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // router.push(`/label/${label.id}`);
+                }}
+              >
+                {currentLabel.name}
+                <Tooltip text={"Remove label"}>
+                  <button
+                    className="absolute right-0 top-1/2 ml-1 hidden h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-black/60 group-hover/label:flex group-hover/label:bg-gray-700 group-hover/label:text-white dark:text-white/60 dark:group-hover/label:bg-gray-300 dark:group-hover/label:text-black"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentLabel(undefined);
+                      // disconnectFromNote.mutate({ noteId: note.id, id: label.id });
+                    }}
+                  >
+                    <MdOutlineClose size={10} />
+                  </button>
+                </Tooltip>
+              </div>
+            </div>
+          ) : null}
           <div
             className={`flex flex-col justify-between rounded-b-xl bg-gray-50 px-2 py-1 dark:bg-gray-900 sm:flex-row sm:items-center`}
             style={{
-              backgroundColor: noteColor !== "default" ? noteColor : "",
+              backgroundColor: noteColor || "transparent",
             }}
           >
             <div className="flex items-center justify-between sm:justify-start sm:gap-4">
@@ -258,13 +291,13 @@ export default function CreateNote() {
                           <TbDropletOff
                             size={32}
                             className={`cursor-pointer rounded-full border-2 border-solid stroke-black/60 p-1 transition-all dark:stroke-white/60 duration-200${
-                              noteColor === "default"
+                              !noteColor
                                 ? " border-fuchsia-500 hover:border-fuchsia-500"
                                 : " border-black/20 hover:border-black dark:border-white/20 dark:hover:border-white"
                             }`}
-                            onClick={() => setNoteColor("default")}
+                            onClick={() => setNoteColor(undefined)}
                           />
-                          {noteColor === "default" ? (
+                          {!noteColor ? (
                             <MdOutlineDone
                               size={14}
                               className="absolute -top-[2px] -right-[2px] flex rounded-full bg-fuchsia-500 fill-white"
@@ -313,13 +346,13 @@ export default function CreateNote() {
                           <MdOutlineHideImage
                             size={40}
                             className={`cursor-pointer rounded-full border-2 border-solid fill-black/60 p-[6px] dark:fill-white/60${
-                              background === "default"
+                              !background
                                 ? " border-fuchsia-500 hover:border-fuchsia-500"
                                 : " border-black/20 hover:border-black dark:border-white/20 dark:hover:border-white"
                             }`}
                             onClick={() => setBackground("default")}
                           />
-                          {background === "default" ? (
+                          {!background ? (
                             <MdOutlineDone
                               size={14}
                               className="absolute top-0 right-0 flex rounded-full bg-fuchsia-500 fill-white"

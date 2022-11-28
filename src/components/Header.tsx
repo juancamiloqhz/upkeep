@@ -21,6 +21,7 @@ import Tooltip from "./Radix/Tooltip";
 import { useRouter } from "next/router";
 import { useTheme } from "next-themes";
 import KeyboardShortcutsModal from "./Note/KeyboardShortcutsModal";
+import { trpc } from "../utils/trpc";
 
 export default function Header({
   setForceSidebarOpen,
@@ -35,6 +36,7 @@ export default function Header({
   const router = useRouter();
   const mutatingNumber = useIsMutating();
   const fetchingNumber = useIsFetching();
+  const utils = trpc.useContext();
 
   React.useEffect(() => {
     if (mutatingNumber > 0 || fetchingNumber > 0) {
@@ -58,6 +60,20 @@ export default function Header({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const labelName = React.useMemo(() => {
+    if (router.pathname === "/label/[id]") {
+      const labels = utils.label.all.getData();
+      if (labels) {
+        const label = labels.find((label) => label.id === router.query.id);
+        return label?.name;
+      } else {
+        return "";
+      }
+    } else {
+      return "";
+    }
+  }, [router.query?.id, router.pathname]);
+
   return (
     <header
       className={`fixed top-0 z-[101] grid h-16 w-full grid-cols-[auto_auto] items-center gap-6 bg-gray-50 px-4 transition-shadow dark:bg-gray-900 md:grid-cols-[minmax(160px,_220px)_minmax(300px,_600px)_1fr] ${
@@ -75,7 +91,7 @@ export default function Header({
             <SlMenu size={18} />
           </button>
         </Tooltip>
-        {router.asPath === "/" || router.asPath === "/#home" ? (
+        {router.pathname === "/" ? (
           <Link href="/">
             <h1 className="text-2xl font-bold">
               <span className="text-[hsl(280,100%,30%)] dark:text-[hsl(280,100%,40%)]">
@@ -87,14 +103,17 @@ export default function Header({
             </h1>
           </Link>
         ) : null}
-        {router.asPath === "/#trash" ? (
+        {router.pathname === "/trash" ? (
           <h1 className="text-xl">Trash</h1>
         ) : null}
-        {router.asPath === "/#reminders" ? (
+        {router.pathname === "/reminders" ? (
           <h1 className="text-xl">Reminders</h1>
         ) : null}
-        {router.asPath === "/#archive" ? (
+        {router.pathname === "/archive" ? (
           <h1 className="text-xl">Archive</h1>
+        ) : null}
+        {router.pathname === "/label/[id]" ? (
+          <h1 className="text-xl">{labelName}</h1>
         ) : null}
       </div>
 

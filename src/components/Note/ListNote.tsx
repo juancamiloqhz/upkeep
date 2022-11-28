@@ -2,6 +2,8 @@ import React from "react";
 import * as Popover from "@radix-ui/react-popover";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as Checkbox from "@radix-ui/react-checkbox";
+import * as RadixLabel from "@radix-ui/react-label";
 import { TiPinOutline, TiPin } from "react-icons/ti";
 import { HiOutlineUserPlus, HiOutlineClock } from "react-icons/hi2";
 import {
@@ -14,6 +16,8 @@ import {
   MdChevronRight,
   MdSearch,
   MdLocationOn,
+  MdCheck,
+  MdOutlineClose,
 } from "react-icons/md";
 import {
   BiBellPlus,
@@ -26,11 +30,11 @@ import { trpc } from "../../utils/trpc";
 import Tooltip from "../Radix/Tooltip";
 import { useClickOutside } from "../../utils/helpers";
 import Image from "next/image";
-import { type Note } from "../../types/upkeep";
 import { bgList, colorList } from "../../utils/constants";
 import { useRouter } from "next/router";
+import { type Note, type Label } from "@prisma/client";
 
-const ListNote: React.FC<{ note: Note }> = ({ note }) => {
+const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
   const ref = React.useRef<HTMLLIElement>(null);
   const [btnFocused, setBtnFocused] = React.useState(false);
   const router = useRouter();
@@ -39,12 +43,7 @@ const ListNote: React.FC<{ note: Note }> = ({ note }) => {
     onError(error) {
       console.log(error);
     },
-
     async onMutate() {
-      // await utils.note.allActive.cancel();
-      // await utils.note.allTrashed.cancel();
-      // await utils.note.allPinned.cancel();
-      // await utils.note.allArchived.cancel();
       const allActiveNotes = utils.note.allActive.getData();
       const allTrashedNotes = utils.note.allTrashed.getData();
       const allPinnedNotes = utils.note.allPinned.getData();
@@ -301,14 +300,15 @@ const ListNote: React.FC<{ note: Note }> = ({ note }) => {
       const allTrashedNotes = utils.note.allTrashed.getData();
       const newNote = {
         id: `${Math.random()}`,
-        title: title || "",
-        content: content || "",
-        background: background || "default",
-        color: color || "default",
+        title: title || note.title,
+        content: content || note.content,
+        background: background || note.background,
+        color: color || note.color,
         status: note.status,
         authorId: note.authorId,
         createdAt: new Date(),
         updatedAt: new Date(),
+        labels: note.labels,
       };
       switch (note.status) {
         case "ACTIVE":
@@ -350,10 +350,10 @@ const ListNote: React.FC<{ note: Note }> = ({ note }) => {
   });
   const noteStyles = React.useMemo(
     () => ({
-      ...(note.color !== "default" && note.background === "default"
+      ...(note.color && !note.background
         ? { backgroundColor: note.color }
         : {}),
-      ...(note.background !== "default" && note.color === "default"
+      ...(note.background && !note.color
         ? {
             backgroundImage: `url(${note.background})`,
             backgroundSize: "cover",
@@ -361,7 +361,7 @@ const ListNote: React.FC<{ note: Note }> = ({ note }) => {
             backgroundRepeat: "no-repeat",
           }
         : {}),
-      ...(note.color !== "default" && note.background !== "default"
+      ...(note.color && note.background
         ? {
             backgroundColor: note.color,
             borderColor: note.color,
@@ -374,6 +374,16 @@ const ListNote: React.FC<{ note: Note }> = ({ note }) => {
     }),
     [note.color, note.background]
   );
+
+  const noteLabels = React.useMemo(() => {
+    return utils.label.all.getData() || [];
+  }, [utils.label.all]);
+
+  const hasActiveTags = React.useMemo(() => {
+    return noteLabels.some(
+      (label) => label.id === note.labels.find((l) => l.id === label.id)?.id
+    );
+  }, [note.labels, noteLabels]);
 
   return (
     <li
@@ -429,24 +439,32 @@ const ListNote: React.FC<{ note: Note }> = ({ note }) => {
       </Tooltip>
       {/* NOTE CONTENT */}
       <div
-        className="gap-4 px-3 pb-10 pt-[0.6rem]"
+        className="flex w-full flex-col justify-between px-3 py-2"
         onClick={() => {
           router.push(
             {
               href: `${router.pathname}?noteId=${note.id}`,
-              // pathname: `/?noteId=[noteId]`,
               query: { noteId: note.id },
             },
             `/note/${note.id}`
           );
         }}
       >
-        {note.title ? (
-          <h3 className="mr-6 mb-2 font-semibold leading-tight">
-            {note.title}
-          </h3>
+        <div className="h-full min-h-[4rem]">
+          {note.title ? (
+            <h3 className="mr-6 mb-2 font-semibold leading-tight">
+              {note.title}
+            </h3>
+          ) : null}
+          <p className={`text-sm font-light`}>{note?.content}</p>
+        </div>
+        {note.labels.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {note.labels.map((label) => (
+              <NoteLabel key={label.id} label={label} note={note} />
+            ))}
+          </div>
         ) : null}
-        <p className={`text-sm font-light`}>{note?.content}</p>
       </div>
       {/* NOTE ACTIONS */}
       <div
@@ -827,7 +845,7 @@ const ListNote: React.FC<{ note: Note }> = ({ note }) => {
                   </DropdownMenu.Item>
                   <DropdownMenu.Sub>
                     <DropdownMenu.SubTrigger className="flex h-full w-full cursor-pointer items-center justify-between py-2 pl-4 pr-2 text-sm text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10">
-                      Add label
+                      {hasActiveTags ? "Change label" : "Add label"}
                       <MdChevronRight size={18} />
                     </DropdownMenu.SubTrigger>
                     <DropdownMenu.Portal>
@@ -851,21 +869,14 @@ const ListNote: React.FC<{ note: Note }> = ({ note }) => {
                             </span>
                           </DropdownMenu.Label>
                         </div>
-                        <div className="max-h-[250px] overflow-y-auto px-3">
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
-                          <h1>tag</h1>
+                        <div className="max-h-[250px] overflow-y-auto pb-4">
+                          {noteLabels.map((label) => (
+                            <LabelPick
+                              key={label.id}
+                              label={label}
+                              note={note}
+                            />
+                          ))}
                         </div>
                       </DropdownMenu.SubContent>
                     </DropdownMenu.Portal>
@@ -893,3 +904,212 @@ const ListNote: React.FC<{ note: Note }> = ({ note }) => {
 };
 
 export default React.memo(ListNote);
+
+function NoteLabel({
+  label,
+  note,
+}: {
+  label: Label;
+  note: Note & { labels: Label[] };
+}) {
+  const utils = trpc.useContext();
+  const router = useRouter();
+  const disconnectFromNote = trpc.label.disconnectFromNote.useMutation({
+    async onMutate({ noteId, id }) {
+      const allActiveNotes = utils.note.allActive.getData();
+      const allArchivedNotes = utils.note.allArchived.getData();
+      const allPinnedNotes = utils.note.allPinned.getData();
+      switch (note.status) {
+        case "ACTIVE":
+          utils.note.allActive.setData(
+            undefined,
+            allActiveNotes?.map((note) =>
+              note.id === noteId
+                ? {
+                    ...note,
+                    labels: note.labels.filter((label) => label.id !== id),
+                  }
+                : note
+            )
+          );
+          break;
+        case "PINNED":
+          utils.note.allPinned.setData(
+            undefined,
+            allPinnedNotes?.map((note) =>
+              note.id === noteId
+                ? {
+                    ...note,
+                    labels: note.labels.filter((label) => label.id !== id),
+                  }
+                : note
+            )
+          );
+          break;
+        case "ARCHIVED":
+          utils.note.allArchived.setData(
+            undefined,
+            allArchivedNotes?.map((note) =>
+              note.id === noteId
+                ? {
+                    ...note,
+                    labels: note.labels.filter((label) => label.id !== id),
+                  }
+                : note
+            )
+          );
+          break;
+        default:
+          break;
+      }
+    },
+  });
+  return (
+    <span
+      key={label.id}
+      className="group/label relative flex h-[24px] cursor-pointer items-center justify-between whitespace-nowrap rounded-full bg-black/10 px-[10px] text-xs font-medium leading-none dark:bg-white/10"
+      onClick={(e) => {
+        e.stopPropagation();
+        router.push(`/label/${label.id}`);
+      }}
+    >
+      {label.name}
+      <Tooltip text={"Remove label"}>
+        <button
+          className="absolute right-0 top-1/2 ml-1 hidden h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-black/60 group-hover/label:flex group-hover/label:bg-gray-700 group-hover/label:text-white dark:text-white/60 dark:group-hover/label:bg-gray-300 dark:group-hover/label:text-black"
+          onClick={(e) => {
+            e.stopPropagation();
+            disconnectFromNote.mutate({ noteId: note.id, id: label.id });
+          }}
+        >
+          <MdOutlineClose size={10} />
+        </button>
+      </Tooltip>
+    </span>
+  );
+}
+
+function LabelPick({
+  label,
+  note,
+}: {
+  label: Label;
+  note: Note & { labels: Label[] };
+}) {
+  const utils = trpc.useContext();
+  const connectToNote = trpc.label.connectToNote.useMutation({
+    async onMutate({ noteId, id }) {
+      const allActiveNotes = utils.note.allActive.getData();
+      const allArchivedNotes = utils.note.allArchived.getData();
+      const allPinnedNotes = utils.note.allPinned.getData();
+      switch (note.status) {
+        case "ACTIVE":
+          utils.note.allActive.setData(
+            undefined,
+            allActiveNotes?.map((note) =>
+              note.id === noteId
+                ? { ...note, labels: [...note.labels, label] }
+                : note
+            )
+          );
+          break;
+        case "PINNED":
+          utils.note.allPinned.setData(
+            undefined,
+            allPinnedNotes?.map((note) =>
+              note.id === noteId
+                ? { ...note, labels: [...note.labels, label] }
+                : note
+            )
+          );
+          break;
+        case "ARCHIVED":
+          utils.note.allArchived.setData(
+            undefined,
+            allArchivedNotes?.map((note) =>
+              note.id === noteId
+                ? { ...note, labels: [...note.labels, label] }
+                : note
+            )
+          );
+          break;
+        default:
+          break;
+      }
+    },
+  });
+  const disconnectFromNote = trpc.label.disconnectFromNote.useMutation({
+    async onMutate({ noteId, id }) {
+      const allActiveNotes = utils.note.allActive.getData();
+      const allArchivedNotes = utils.note.allArchived.getData();
+      const allPinnedNotes = utils.note.allPinned.getData();
+      switch (note.status) {
+        case "ACTIVE":
+          utils.note.allActive.setData(
+            undefined,
+            allActiveNotes?.map((note) =>
+              note.id === noteId
+                ? {
+                    ...note,
+                    labels: note.labels.filter((label) => label.id !== id),
+                  }
+                : note
+            )
+          );
+          break;
+        case "PINNED":
+          utils.note.allPinned.setData(
+            undefined,
+            allPinnedNotes?.map((note) =>
+              note.id === noteId
+                ? {
+                    ...note,
+                    labels: note.labels.filter((label) => label.id !== id),
+                  }
+                : note
+            )
+          );
+          break;
+        case "ARCHIVED":
+          utils.note.allArchived.setData(
+            undefined,
+            allArchivedNotes?.map((note) =>
+              note.id === noteId
+                ? {
+                    ...note,
+                    labels: note.labels.filter((label) => label.id !== id),
+                  }
+                : note
+            )
+          );
+          break;
+        default:
+          break;
+      }
+    },
+  });
+  return (
+    <RadixLabel.Root
+      className="flex w-full select-none items-center gap-2 py-2 px-3 text-sm leading-none hover:bg-black/10 dark:hover:bg-white/10"
+      htmlFor={label.id}
+    >
+      <Checkbox.Root
+        className="flex h-[14px] min-h-[14px] w-[14px] min-w-[14px] items-center justify-center rounded border-2 border-solid border-black/30 bg-gray-50 hover:bg-gray-100 focus:border-black dark:border-white/30 dark:bg-gray-900 hover:dark:bg-black dark:focus:border-white"
+        id={label.id}
+        checked={note.labels.some((l) => l.id === label.id)}
+        onCheckedChange={(checked) => {
+          if (checked) {
+            connectToNote.mutate({ noteId: note.id, id: label.id });
+          } else {
+            disconnectFromNote.mutate({ noteId: note.id, id: label.id });
+          }
+        }}
+      >
+        <Checkbox.Indicator className="text-black dark:text-white">
+          <MdCheck />
+        </Checkbox.Indicator>
+      </Checkbox.Root>
+      {label.name}
+    </RadixLabel.Root>
+  );
+}

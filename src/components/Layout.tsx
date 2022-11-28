@@ -1,6 +1,5 @@
 import { useIsMutating } from "@tanstack/react-query";
 import Head from "next/head";
-import { useRouter } from "next/router";
 import React from "react";
 import { trpc } from "../utils/trpc";
 import Header from "./Header";
@@ -8,9 +7,7 @@ import Sidebar from "./Sidebar";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [forceSidebarOpen, setForceSidebarOpen] = React.useState(false);
-  const router = useRouter();
   const utils = trpc.useContext();
-  console.log(router);
 
   const number = useIsMutating();
   React.useEffect(() => {

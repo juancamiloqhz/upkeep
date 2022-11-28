@@ -1,3 +1,4 @@
+import { Status } from "@prisma/client";
 import { z } from "zod";
 
 import { router, publicProcedure, protectedProcedure } from "../trpc";
@@ -11,6 +12,9 @@ export const noteRouter = router({
       orderBy: {
         updatedAt: "desc",
       },
+      include: {
+        labels: true,
+      },
     });
   }),
   allPinned: publicProcedure.query(({ ctx }) => {
@@ -20,6 +24,9 @@ export const noteRouter = router({
       },
       orderBy: {
         updatedAt: "desc",
+      },
+      include: {
+        labels: true,
       },
     });
   }),
@@ -31,6 +38,9 @@ export const noteRouter = router({
       orderBy: {
         updatedAt: "desc",
       },
+      include: {
+        labels: true,
+      },
     });
   }),
   allArchived: publicProcedure.query(({ ctx }) => {
@@ -41,8 +51,31 @@ export const noteRouter = router({
       orderBy: {
         updatedAt: "desc",
       },
+      include: {
+        labels: true,
+      },
     });
   }),
+  allByLabel: protectedProcedure
+    .input(z.object({ labelId: z.string() }))
+    .query(({ ctx, input }) => {
+      return ctx.prisma.note.findMany({
+        where: {
+          authorId: ctx.session.user.id,
+          labels: {
+            some: {
+              id: input.labelId,
+            },
+          },
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+        include: {
+          labels: true,
+        },
+      });
+    }),
   one: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(({ ctx, input }) => {
@@ -55,21 +88,21 @@ export const noteRouter = router({
   add: protectedProcedure
     .input(
       z.object({
-        title: z.string().optional(),
-        content: z.string().optional(),
-        background: z.string().optional(),
-        color: z.string().optional(),
-        status: z.enum(["ACTIVE", "PINNED", "TRASH", "ARCHIVED"]),
+        title: z.string().nullish(),
+        content: z.string().nullish(),
+        background: z.string().nullish(),
+        color: z.string().nullish(),
+        status: z.nativeEnum(Status),
       })
     )
     .mutation(({ ctx, input }) => {
       return ctx.prisma.note.create({
         data: {
-          title: input?.title ?? "",
-          content: input?.content ?? "",
-          background: input?.background ?? "default",
-          color: input?.color ?? "default",
-          status: input?.status ?? "ACTIVE",
+          title: input.title,
+          content: input.content,
+          background: input.background,
+          color: input.color,
+          status: input.status,
           author: {
             connect: {
               id: ctx.session.user.id,
@@ -82,11 +115,11 @@ export const noteRouter = router({
     .input(
       z.object({
         id: z.string(),
-        title: z.string().optional(),
-        content: z.string().optional(),
-        background: z.string().optional(),
-        color: z.string().optional(),
-        status: z.enum(["ACTIVE", "PINNED", "TRASH", "ARCHIVED"]).optional(),
+        title: z.string().nullish(),
+        content: z.string().nullish(),
+        background: z.string().nullish(),
+        color: z.string().nullish(),
+        status: z.nativeEnum(Status).optional(),
         updatedAt: z.date().optional(),
       })
     )
