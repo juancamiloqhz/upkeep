@@ -3,7 +3,7 @@ import { type GetServerSideProps, type NextPage } from "next";
 import Layout from "../../components/Layout";
 import { trpc } from "../../utils/trpc";
 import { CreateNote, ListNote } from "../../components/Note";
-import { MdLabelOutline } from "react-icons/md";
+import { LabelOutlineIcon } from "../../components/Icons";
 
 const LabelView: NextPage<{ id: string }> = ({ id }) => {
   const allNotesByLabel = trpc.note.allByLabel.useQuery(
@@ -33,7 +33,7 @@ const LabelView: NextPage<{ id: string }> = ({ id }) => {
       ) : null}
       {!allNotesByLabel.data?.length && !allNotesByLabel.isLoading ? (
         <div className="absolute top-1/3 left-1/2 flex -translate-x-1/2 -translate-y-1/2 transform flex-col items-center justify-center">
-          <MdLabelOutline
+          <LabelOutlineIcon
             size={130}
             className="fill-black/30 dark:fill-white/30"
           />

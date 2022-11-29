@@ -1,21 +1,24 @@
 import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import { TiFlashOutline } from "react-icons/ti";
-import { BiAlarm, BiArchiveIn, BiPlus } from "react-icons/bi";
-import { FiEdit3, FiTrash2 } from "react-icons/fi";
-import {
-  MdOutlineClose,
-  MdCheck,
-  MdLabel,
-  MdEdit,
-  MdLabelOutline,
-} from "react-icons/md";
-import { IoMdTrash } from "react-icons/io";
 import * as RadixLabel from "@radix-ui/react-label";
 import Tooltip from "./Radix/Tooltip";
 import { trpc } from "../utils/trpc";
 import { type Label } from "@prisma/client";
+import {
+  FlashOutlineIcon,
+  AlarmIcon,
+  LabelOutlineIcon,
+  EditOutlineIcon,
+  EditIcon,
+  CheckIcon,
+  LabelIcon,
+  CloseIcon,
+  PlusIcon,
+  ArchiveIcon,
+  TrashIcon,
+  TrashFillIcon,
+} from "./Icons";
 
 export default function Sidebar({
   forceSidebarOpen,
@@ -57,7 +60,7 @@ export default function Sidebar({
             } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
             onClick={() => push("/")}
           >
-            <TiFlashOutline />
+            <FlashOutlineIcon />
             <span>Notes</span>
           </button>
           {/* Reminders */}
@@ -69,7 +72,7 @@ export default function Sidebar({
             } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
             onClick={() => push("/reminders")}
           >
-            <BiAlarm />
+            <AlarmIcon />
             <span>Reminders</span>
           </button>
           {/* Labels */}
@@ -83,7 +86,7 @@ export default function Sidebar({
               } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
               onClick={() => push(`/label/${label.id}`)}
             >
-              <MdLabelOutline />
+              <LabelOutlineIcon />
               <span>{label.name}</span>
             </button>
           ))}
@@ -97,7 +100,7 @@ export default function Sidebar({
                     : "text-black/60 hover:bg-black/10 dark:text-white/60 dark:hover:bg-white/10"
                 } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
               >
-                <FiEdit3 />
+                <EditOutlineIcon />
                 <span>Edit labels</span>
               </button>
             </Dialog.Trigger>
@@ -139,7 +142,7 @@ export default function Sidebar({
             } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
             onClick={() => push("/archive")}
           >
-            <BiArchiveIn />
+            <ArchiveIcon />
             <span>Archive</span>
           </button>
           {/* Trash */}
@@ -151,7 +154,7 @@ export default function Sidebar({
             } ease-[cubic-bezier(0.075, 0.82, 0.165, 1)] transition-all duration-300`}
             onClick={() => push("/trash")}
           >
-            <FiTrash2 />
+            <TrashIcon />
             <span>Trash</span>
           </button>
         </div>
@@ -324,7 +327,7 @@ function CreateLabelInput() {
             });
           }}
         >
-          {state.focused ? <MdOutlineClose size={20} /> : <BiPlus size={20} />}
+          {state.focused ? <CloseIcon size={20} /> : <PlusIcon size={20} />}
         </button>
       </Tooltip>
       <form onSubmit={handleCreateLabel} className="flex items-center">
@@ -349,7 +352,7 @@ function CreateLabelInput() {
               state.create ? " visible" : " invisible"
             }`}
           >
-            <MdCheck size={20} />
+            <CheckIcon size={20} />
           </button>
         </Tooltip>
       </form>
@@ -509,9 +512,9 @@ function NoteLabelInput({ label }: { label: Label }) {
               className="mr-2 rounded-full p-1 text-black/60 hover:bg-black/10 hover:text-black dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
             >
               {hovered || focused ? (
-                <IoMdTrash size={18} />
+                <TrashFillIcon size={18} />
               ) : (
-                <MdLabel size={18} />
+                <LabelIcon size={18} />
               )}
             </button>
           </Dialog.Trigger>
@@ -576,7 +579,7 @@ function NoteLabelInput({ label }: { label: Label }) {
             }
           }}
         >
-          {focused ? <MdCheck size={20} /> : <MdEdit size={20} />}
+          {focused ? <CheckIcon size={20} /> : <EditIcon size={20} />}
         </button>
       </Tooltip>
     </div>

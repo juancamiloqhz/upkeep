@@ -1,8 +1,8 @@
-import { FiTrash2 } from "react-icons/fi";
 import * as Dialog from "@radix-ui/react-dialog";
 import { trpc } from "../../utils/trpc";
 import { ListNote } from "../Note";
 import React from "react";
+import { TrashIcon } from "../Icons";
 
 export default function TrashView() {
   const utils = trpc.useContext();
@@ -75,7 +75,7 @@ export default function TrashView() {
       ) : null}
       {!allTrashedNotes.data?.length && !allTrashedNotes.isLoading ? (
         <div className="absolute top-1/3 left-1/2 flex -translate-x-1/2 -translate-y-1/2 transform flex-col items-center justify-center">
-          <FiTrash2
+          <TrashIcon
             size={130}
             className="stroke-black/30 dark:stroke-white/30"
           />

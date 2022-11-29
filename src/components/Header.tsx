@@ -5,16 +5,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as Label from "@radix-ui/react-label";
 import * as Checkbox from "@radix-ui/react-checkbox";
 import Link from "next/link";
-import { SlMenu } from "react-icons/sl";
-import {
-  MdOutlineCloudDone,
-  MdAccountCircle,
-  MdOutlineSettings,
-  MdCheck,
-  MdSearch,
-} from "react-icons/md";
-import { TfiViewGrid, TfiViewList } from "react-icons/tfi";
-import LoadingSpinner from "./LoadingSpinner";
 import Image from "next/image";
 import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 import Tooltip from "./Radix/Tooltip";
@@ -22,6 +12,17 @@ import { useRouter } from "next/router";
 import { useTheme } from "next-themes";
 import KeyboardShortcutsModal from "./Note/KeyboardShortcutsModal";
 import { trpc } from "../utils/trpc";
+import {
+  MenuIcon,
+  CloudDoneIcon,
+  AccountCircleIcon,
+  OutlineSettingsIcon,
+  ViewListIcon,
+  ViewGridIcon,
+  CheckIcon,
+  SearchIcon,
+  LoadingSpinner,
+} from "./Icons";
 
 export default function Header({
   setForceSidebarOpen,
@@ -88,7 +89,7 @@ export default function Header({
             className={`rounded-full p-3 hover:bg-black/10 focus:bg-black/10 dark:hover:bg-white/10 dark:focus:bg-white/10`}
             onClick={() => setForceSidebarOpen((d) => !d)}
           >
-            <SlMenu size={18} />
+            <MenuIcon size={18} />
           </button>
         </Tooltip>
         {router.pathname === "/" ? (
@@ -133,14 +134,14 @@ export default function Header({
           className="absolute top-1/2 left-[6px] flex -translate-y-1/2 items-center justify-center rounded-full p-2 hover:bg-black/20 dark:hover:bg-white/20"
           onClick={() => searchInputRef.current?.focus()}
         >
-          <MdSearch size={24} />
+          <SearchIcon size={24} />
         </button>
       </div>
 
       <div className="flex items-center gap-1 justify-self-end md:gap-4">
         {/* Loading */}
         <div className="rounded-full p-[12px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60">
-          {loading ? <LoadingSpinner /> : <MdOutlineCloudDone size={22} />}
+          {loading ? <LoadingSpinner /> : <CloudDoneIcon size={22} />}
         </div>
         {/* View */}
         <Tooltip text={true ? "List view" : "Grid view"}>
@@ -149,7 +150,7 @@ export default function Header({
             // onFocus={() => setBtnFocused(true)}
             className="rounded-full p-[12px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
           >
-            {true ? <TfiViewList size={20} /> : <TfiViewGrid size={20} />}
+            {true ? <ViewListIcon size={20} /> : <ViewGridIcon size={20} />}
           </button>
         </Tooltip>
         {/* Settings */}
@@ -161,7 +162,7 @@ export default function Header({
                 // onFocus={() => setBtnFocused(true)}
                 className="rounded-full p-[12px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
               >
-                <MdOutlineSettings size={22} />
+                <OutlineSettingsIcon size={22} />
               </button>
             </Popover.Trigger>
           </Tooltip>
@@ -202,7 +203,7 @@ export default function Header({
                                   id="new-to-bottom"
                                 >
                                   <Checkbox.Indicator className="text-black dark:text-white">
-                                    <MdCheck />
+                                    <CheckIcon />
                                   </Checkbox.Indicator>
                                 </Checkbox.Root>
                               </div>
@@ -218,7 +219,7 @@ export default function Header({
                                   id="checked-to-bottom"
                                 >
                                   <Checkbox.Indicator className="text-black dark:text-white">
-                                    <MdCheck />
+                                    <CheckIcon />
                                   </Checkbox.Indicator>
                                 </Checkbox.Root>
                               </div>
@@ -235,7 +236,7 @@ export default function Header({
                                   id="rich-link-previews"
                                 >
                                   <Checkbox.Indicator className="text-black dark:text-white">
-                                    <MdCheck />
+                                    <CheckIcon />
                                   </Checkbox.Indicator>
                                 </Checkbox.Root>
                               </div>
@@ -252,7 +253,7 @@ export default function Header({
                                   id="enable-dark-theme"
                                 >
                                   <Checkbox.Indicator className="text-black dark:text-white">
-                                    <MdCheck />
+                                    <CheckIcon />
                                   </Checkbox.Indicator>
                                 </Checkbox.Root>
                               </div>
@@ -320,7 +321,7 @@ export default function Header({
                                 id="enable-sharing"
                               >
                                 <Checkbox.Indicator className="text-black dark:text-white">
-                                  <MdCheck />
+                                  <CheckIcon />
                                 </Checkbox.Indicator>
                               </Checkbox.Root>
                             </div>
@@ -402,7 +403,7 @@ export default function Header({
                     alt="User profile picture"
                   />
                 ) : (
-                  <MdAccountCircle size={32} />
+                  <AccountCircleIcon size={32} />
                 )}
               </button>
             </Popover.Trigger>
@@ -414,7 +415,7 @@ export default function Header({
               className="z-[101] min-w-[350px] rounded-md border border-black/10 bg-gray-50 shadow-md dark:border-white/10 dark:bg-gray-900"
             >
               <div className="flex flex-col">
-                <div className="flex flex-col items-center border-b border-black/30 px-2 py-7 dark:border-white/30">
+                <div className="flex flex-col items-center border-b border-black/10 px-2 py-7 dark:border-white/20">
                   {sessionData?.user?.image ? (
                     <Image
                       src={sessionData?.user?.image || ""}
@@ -424,7 +425,7 @@ export default function Header({
                       alt="User profile picture"
                     />
                   ) : (
-                    <MdAccountCircle size={80} className="text-black/50" />
+                    <AccountCircleIcon size={80} className="text-black/50" />
                   )}
                   <h3 className="mt-1 font-semibold">
                     {sessionData?.user?.name}
@@ -437,7 +438,7 @@ export default function Header({
                     Manage your UpKeep account
                   </Link>
                 </div>
-                <div className="flex items-center justify-center border-b border-black/30 px-2 py-4 dark:border-white/30">
+                <div className="flex items-center justify-center border-b border-black/10 px-2 py-4 dark:border-white/20">
                   <button
                     className="rounded-sm border border-solid border-black/10 px-4 py-[10px] text-sm font-medium hover:bg-black/10 dark:border-white/30 dark:hover:bg-white/10"
                     onClick={() => signOut()}

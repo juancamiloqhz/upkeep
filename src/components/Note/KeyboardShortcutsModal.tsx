@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { MdOutlineClose } from "react-icons/md";
+import { CloseIcon } from "../Icons";
 import Tooltip from "../Radix/Tooltip";
 
 export default function KeyboardShortcutsModal() {
@@ -228,7 +228,7 @@ export default function KeyboardShortcutsModal() {
                 className="absolute top-3 right-3 inline-flex h-6 w-6 items-center justify-center rounded-full hover:bg-black/10 focus:bg-black/10 dark:hover:bg-white/20 dark:focus:bg-white/20"
                 aria-label="Close"
               >
-                <MdOutlineClose />
+                <CloseIcon />
               </button>
             </Dialog.Close>
           </Tooltip>

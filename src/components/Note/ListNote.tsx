@@ -4,28 +4,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Checkbox from "@radix-ui/react-checkbox";
 import * as RadixLabel from "@radix-ui/react-label";
-import { TiPinOutline, TiPin } from "react-icons/ti";
-import { HiOutlineUserPlus, HiOutlineClock } from "react-icons/hi2";
-import {
-  MdOutlineColorLens,
-  MdMoreVert,
-  MdOutlineRestoreFromTrash,
-  MdOutlineDeleteForever,
-  MdOutlineHideImage,
-  MdOutlineDone,
-  MdChevronRight,
-  MdSearch,
-  MdLocationOn,
-  MdCheck,
-  MdOutlineClose,
-} from "react-icons/md";
-import {
-  BiBellPlus,
-  BiImageAdd,
-  BiArchiveIn,
-  BiArchiveOut,
-} from "react-icons/bi";
-import { TbDropletOff } from "react-icons/tb";
 import { trpc } from "../../utils/trpc";
 import Tooltip from "../Radix/Tooltip";
 import { useClickOutside } from "../../utils/helpers";
@@ -33,6 +11,28 @@ import Image from "next/image";
 import { bgList, colorList } from "../../utils/constants";
 import { useRouter } from "next/router";
 import { type Note, type Label } from "@prisma/client";
+import {
+  ArchiveIcon,
+  BellPlusIcon,
+  CheckIcon,
+  ChevronRightIcon,
+  CloseIcon,
+  DropletOffIcon,
+  ImageAddIcon,
+  LocationFillIcon,
+  MoreVerticalIcon,
+  OutlineClockIcon,
+  OutlineColorPaletteIcon,
+  OutlineDeleteForeverIcon,
+  OutlineDoneIcon,
+  OutlineHideImageIcon,
+  OutlineRestoreFromTrashIcon,
+  OutlineUserPlusIcon,
+  PinIcon,
+  PinOutlineIcon,
+  SearchIcon,
+  UnarchiveIcon,
+} from "../Icons";
 
 const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
   const ref = React.useRef<HTMLLIElement>(null);
@@ -413,12 +413,12 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
             }
           >
             {note.status === "PINNED" ? (
-              <TiPin
+              <PinIcon
                 className="-rotate-45 text-black/60 transition-all duration-300 ease-in group-hover/btn:text-black dark:text-white/60 dark:group-hover/btn:text-white"
                 size={24}
               />
             ) : (
-              <TiPinOutline
+              <PinOutlineIcon
                 className="text-black/60 transition-all duration-300 ease-in group-hover/btn:text-black dark:text-white/60 dark:group-hover/btn:text-white"
                 size={24}
               />
@@ -431,7 +431,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
           className={`group/btn invisible absolute top-1 left-1 flex items-center justify-center rounded-full opacity-0 transition-all duration-300 ease-in hover:bg-black/10 group-hover/li:visible group-hover/li:opacity-100`}
           // onClick={}
         >
-          <TiPin
+          <PinIcon
             className="-rotate-45 text-black/60 transition-all duration-300 ease-in group-hover/btn:text-black"
             size={16}
           />
@@ -487,7 +487,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                     type="button"
                     className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                   >
-                    <MdOutlineDeleteForever size={22} />
+                    <OutlineDeleteForeverIcon size={22} />
                   </button>
                 </Dialog.Trigger>
               </Tooltip>
@@ -524,7 +524,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                 onClick={() => restoreNote.mutate({ id: note.id })}
                 className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
               >
-                <MdOutlineRestoreFromTrash size={22} />
+                <OutlineRestoreFromTrashIcon size={22} />
               </button>
             </Tooltip>
           </span>
@@ -539,7 +539,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                     onFocus={() => setBtnFocused(true)}
                     className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                   >
-                    <BiBellPlus size={18} />
+                    <BellPlusIcon size={18} />
                   </button>
                 </DropdownMenu.Trigger>
               </Tooltip>
@@ -576,9 +576,9 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                   <DropdownMenu.Sub>
                     <DropdownMenu.SubTrigger className="flex h-full w-full cursor-pointer items-center justify-between py-2 pl-4 pr-2 text-xs text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10">
                       <span className="flex items-center gap-1">
-                        <HiOutlineClock size={16} /> Pick date & time
+                        <OutlineClockIcon size={16} /> Pick date & time
                       </span>
-                      <MdChevronRight size={18} />
+                      <ChevronRightIcon size={18} />
                     </DropdownMenu.SubTrigger>
                     <DropdownMenu.Portal>
                       <DropdownMenu.SubContent
@@ -597,7 +597,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                               autoFocus
                             />
                             <span className="absolute top-1/2 right-0 -translate-y-1/2">
-                              <MdSearch size={12} />
+                              <SearchIcon size={12} />
                             </span>
                           </DropdownMenu.Label>
                         </div>
@@ -607,9 +607,9 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                   <DropdownMenu.Sub>
                     <DropdownMenu.SubTrigger className="flex h-full w-full cursor-pointer items-center justify-between py-2 pl-4 pr-2 text-xs text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10">
                       <span className="flex items-center gap-1">
-                        <MdLocationOn size={18} /> Pick place
+                        <LocationFillIcon size={18} /> Pick place
                       </span>
-                      <MdChevronRight size={18} />
+                      <ChevronRightIcon size={18} />
                     </DropdownMenu.SubTrigger>
                     <DropdownMenu.Portal>
                       <DropdownMenu.SubContent
@@ -628,7 +628,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                               autoFocus
                             />
                             <span className="absolute top-1/2 right-0 -translate-y-1/2">
-                              <MdSearch size={12} />
+                              <SearchIcon size={12} />
                             </span>
                           </DropdownMenu.Label>
                         </div>
@@ -645,7 +645,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                 onFocus={() => setBtnFocused(true)}
                 className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
               >
-                <HiOutlineUserPlus size={18} />
+                <OutlineUserPlusIcon size={18} />
               </button>
             </Tooltip>
             {/* BACKGROUND OPTIONS */}
@@ -657,7 +657,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                     onFocus={() => setBtnFocused(true)}
                     className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                   >
-                    <MdOutlineColorLens size={18} />
+                    <OutlineColorPaletteIcon size={18} />
                   </button>
                 </Popover.Trigger>
               </Tooltip>
@@ -667,7 +667,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                     <ul className="flex items-center justify-between gap-1 border-b border-black/10 px-2 py-2">
                       <Tooltip text="No color">
                         <li className="relative">
-                          <TbDropletOff
+                          <DropletOffIcon
                             size={32}
                             className={`cursor-pointer rounded-full border-2 border-solid stroke-black/60 p-1 transition-all dark:stroke-white/60 duration-200${
                               note.color === "default"
@@ -682,7 +682,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                             }}
                           />
                           {note.color === "default" ? (
-                            <MdOutlineDone
+                            <OutlineDoneIcon
                               size={14}
                               className="absolute -top-[2px] -right-[2px] flex rounded-full bg-fuchsia-500 fill-white"
                             />
@@ -720,7 +720,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                               />
                             </svg>
                             {note.color === color.color ? (
-                              <MdOutlineDone
+                              <OutlineDoneIcon
                                 size={14}
                                 className="absolute -top-[2px] -right-[2px] flex rounded-full bg-fuchsia-500 fill-white"
                               />
@@ -732,7 +732,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                     <ul className="flex items-center justify-between px-1 py-2">
                       <Tooltip text="No image">
                         <li className="relative">
-                          <MdOutlineHideImage
+                          <OutlineHideImageIcon
                             size={40}
                             className={`cursor-pointer rounded-full border-2 border-solid fill-black/60 p-[6px] dark:fill-white/60${
                               note.background === "default"
@@ -747,7 +747,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                             }}
                           />
                           {note.background === "default" ? (
-                            <MdOutlineDone
+                            <OutlineDoneIcon
                               size={14}
                               className="absolute top-0 right-0 flex rounded-full bg-fuchsia-500 fill-white"
                             />
@@ -774,7 +774,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                               }}
                             />
                             {note.background === bg.path ? (
-                              <MdOutlineDone
+                              <OutlineDoneIcon
                                 size={14}
                                 className="absolute top-0 right-0 flex rounded-full bg-fuchsia-500 fill-white"
                               />
@@ -793,7 +793,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                 type="button"
                 className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
               >
-                <BiImageAdd size={18} />
+                <ImageAddIcon size={18} />
               </button>
             </Tooltip>
             {/* ARCHIVE / UNARCHIVE */}
@@ -810,9 +810,9 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                 className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
               >
                 {note.status === "ARCHIVED" ? (
-                  <BiArchiveOut size={18} />
+                  <UnarchiveIcon size={18} />
                 ) : (
-                  <BiArchiveIn size={18} />
+                  <ArchiveIcon size={18} />
                 )}
               </button>
             </Tooltip>
@@ -825,7 +825,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                     onClick={() => setBtnFocused(true)}
                     className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
                   >
-                    <MdMoreVert size={18} />
+                    <MoreVerticalIcon size={18} />
                   </button>
                 </DropdownMenu.Trigger>
               </Tooltip>
@@ -846,7 +846,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                   <DropdownMenu.Sub>
                     <DropdownMenu.SubTrigger className="flex h-full w-full cursor-pointer items-center justify-between py-2 pl-4 pr-2 text-sm text-black/60 hover:bg-black/10 hover:text-black focus-visible:bg-black/10 focus-visible:outline-0 dark:text-white/60 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:bg-white/10">
                       {hasActiveTags ? "Change label" : "Add label"}
-                      <MdChevronRight size={18} />
+                      <ChevronRightIcon size={18} />
                     </DropdownMenu.SubTrigger>
                     <DropdownMenu.Portal>
                       <DropdownMenu.SubContent
@@ -865,7 +865,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                               autoFocus
                             />
                             <span className="absolute top-1/2 right-0 -translate-y-1/2">
-                              <MdSearch size={12} />
+                              <SearchIcon size={12} />
                             </span>
                           </DropdownMenu.Label>
                         </div>
@@ -982,7 +982,7 @@ function NoteLabel({
             disconnectFromNote.mutate({ noteId: note.id, id: label.id });
           }}
         >
-          <MdOutlineClose size={10} />
+          <CloseIcon size={10} />
         </button>
       </Tooltip>
     </span>
@@ -1106,7 +1106,7 @@ function LabelPick({
         }}
       >
         <Checkbox.Indicator className="text-black dark:text-white">
-          <MdCheck />
+          <CheckIcon />
         </Checkbox.Indicator>
       </Checkbox.Root>
       {label.name}
