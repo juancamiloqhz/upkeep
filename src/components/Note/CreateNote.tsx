@@ -30,6 +30,9 @@ import {
 
 export default function CreateNote() {
   const formRef = React.useRef<HTMLFormElement>(null);
+  const router = useRouter();
+  const utils = trpc.useContext();
+
   const [formFocused, setFormFocused] = React.useState(false);
   const [currentLabel, setCurrentLabel] = React.useState<Label | undefined>(
     undefined
@@ -43,8 +46,12 @@ export default function CreateNote() {
     undefined
   );
   const [status, setStatus] = React.useState<Note["status"]>("ACTIVE");
-  const router = useRouter();
-  const utils = trpc.useContext();
+  // Note created if user uploads an image. Create the note and then upload the image
+  const [newNote, setNewNote] = React.useState<Note | undefined>(undefined);
+  const [firstImage, setFirstImage] = React.useState<File | undefined>(
+    undefined
+  );
+
   const addNote = trpc.note.add.useMutation({
     async onMutate({ title, content, background, color, status }) {
       // console.log("onMutate", res);
@@ -102,6 +109,8 @@ export default function CreateNote() {
     },
   });
 
+  const addNoteWithFirstImage = trpc.note.add.useMutation();
+
   useClickOutside({
     ref: formRef,
     enabled: formFocused,
@@ -122,27 +131,30 @@ export default function CreateNote() {
     },
   });
 
-  const formStyles = {
-    ...(noteColor && !background ? { backgroundColor: noteColor } : {}),
-    ...(background && !noteColor
-      ? {
-          backgroundImage: `url(${background})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }
-      : {}),
-    ...(noteColor && background
-      ? {
-          backgroundColor: noteColor,
-          borderColor: noteColor,
-          backgroundImage: `url(${background})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }
-      : {}),
-  };
+  const formStyles = React.useMemo(
+    () => ({
+      ...(noteColor && !background ? { backgroundColor: noteColor } : {}),
+      ...(background && !noteColor
+        ? {
+            backgroundImage: `url(${background})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }
+        : {}),
+      ...(noteColor && background
+        ? {
+            backgroundColor: noteColor,
+            borderColor: noteColor,
+            backgroundImage: `url(${background})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }
+        : {}),
+    }),
+    [noteColor, background]
+  );
 
   React.useEffect(() => {
     if (router.pathname === "/label/[id]") {
@@ -492,7 +504,7 @@ export default function CreateNote() {
 
       {/* Action Buttons */}
       {!formFocused ? (
-        <div className="absolute top-1/2 right-0 flex -translate-y-1/2">
+        <div className="absolute top-1/2 right-0 flex -translate-y-1/2 md:right-4 md:gap-2">
           <Tooltip text="New list">
             <button
               type="button"
@@ -511,18 +523,90 @@ export default function CreateNote() {
               <PaintBrushIcon className="h-6 w-6" />
             </button>
           </Tooltip>
+
           <Tooltip text="New note with image">
-            <button
-              type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black dark:text-white/30 dark:hover:bg-white/20 dark:hover:text-white"
-              onClick={() => setFormFocused(true)}
+            <RadixLabel.Root
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-black/30 hover:bg-black/10 hover:text-black dark:text-white/30 dark:hover:bg-white/20 dark:hover:text-white"
+              htmlFor="upload"
             >
               <ImageAddIcon className="h-6 w-6" />
-            </button>
+            </RadixLabel.Root>
           </Tooltip>
+          <input
+            id="upload"
+            type="file"
+            accept={validImageTypes}
+            className="hidden"
+            onChange={async (e) => {
+              setFormFocused(true);
+              // uploadPhoto(e);
+              const files = e.target.files;
+              const file = files ? files[0] : false;
+              if (!file) {
+                console.error("Please select a file before clicking 'Upload'");
+                return null;
+              }
+
+              // Validate file type
+              if (!file.type || validImageTypes.indexOf(file.type) === -1) {
+                console.error(
+                  "Please select a valid image format: GIF, JPG, PNG o WEBP."
+                );
+                return null;
+              }
+
+              // Validate file size (20MB)
+              if (file.size > 20 * 1024 * 1024) {
+                console.error("Max file size allowed is 20MB.");
+                return null;
+              }
+              // setFirstImage(file);
+              try {
+                const noteRes = await addNoteWithFirstImage.mutateAsync({
+                  background,
+                  color: noteColor,
+                  status,
+                });
+                console.log(noteRes);
+                const imageRes = await handleUploadImage(file, noteRes.id);
+                console.log(imageRes);
+              } catch (error) {
+                console.log(error);
+              }
+            }}
+          />
         </div>
       ) : null}
       {addNote.error ? <p>{addNote.error.message}</p> : null}
     </form>
   );
+}
+
+const validImageTypes =
+  "image/gif, image/jpeg, image/jpg, image/png, image/webp, image/avif, image/heic, image/heif";
+
+async function handleUploadImage(file: File, noteId: string) {
+  const filename = encodeURIComponent(file.name);
+  const fileType = encodeURIComponent(file.type);
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  console.dir(file, { depth: null });
+  console.dir(filename, { depth: null });
+  console.dir(fileType, { depth: null });
+  console.dir(formData, { depth: null });
+
+  return await fetch(`/api/note/upload/${noteId}`, {
+    method: "POST",
+    body: formData,
+  });
+
+  // if (upload.ok) {
+  //   console.log("Uploaded successfully!");
+  // } else {
+  //   console.error("Upload failed.");
+  // }
+
+  // return null;
 }

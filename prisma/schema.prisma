@@ -99,9 +99,24 @@ model Note {
   color     String?
   labels    Label[]
   reminder  Reminder?
+  images    Image[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  note      Note     @relation(fields: [noteId], references: [id])
+  noteId    String
+  url       String
+  public_id String   @unique
+  format    String
+  version   String
+  order     Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Label {
