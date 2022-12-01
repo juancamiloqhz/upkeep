@@ -19,3 +19,12 @@ export function uploadImage(imagePath: string): Promise<UploadApiResponse> {
     );
   });
 }
+
+export function deleteImages(publicIds: string[]): Promise<any> {
+  return new Promise((resolve, reject) => {
+    cloudinary.api.delete_resources(publicIds, (err, res) => {
+      if (err) reject(err);
+      if (res) resolve(res);
+    });
+  });
+}

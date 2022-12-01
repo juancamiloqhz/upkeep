@@ -3,7 +3,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
 }
 
 datasource db {
@@ -13,7 +12,7 @@ datasource db {
   // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
   // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
   url      = env("DATABASE_URL")
-  referentialIntegrity = "prisma"
+  relationMode = "prisma"
 }
 
 // Necessary for Next auth
@@ -32,6 +31,7 @@ model Account {
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@unique([provider, providerAccountId])
 }
 
@@ -41,6 +41,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model User {
@@ -91,7 +93,7 @@ enum Status {
 model Note {
   id        String   @id @default(cuid())
   status    Status   @default(ACTIVE)
-  author    User     @relation(fields: [authorId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId  String
   title     String?  @db.VarChar(255)
   content   String?  @db.MediumText
@@ -103,11 +105,13 @@ model Note {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+
+  @@index([authorId])
 }
 
 model Image {
   id        String   @id @default(cuid())
-  note      Note     @relation(fields: [noteId], references: [id])
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
   noteId    String
   url       String
   public_id String   @unique
@@ -117,6 +121,8 @@ model Image {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([noteId])
 }
 
 model Label {
@@ -124,11 +130,13 @@ model Label {
   name      String
   color     String?
   notes     Note[]
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 // https://dba.stackexchange.com/questions/290889/mysql-data-model-design-for-reminders
@@ -137,7 +145,7 @@ model Reminder {
   title     String?
   content   String?
   date      DateTime
-  note      Note     @relation(fields: [noteId], references: [id])
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
   noteId    String   @unique
   recurrence Recurrence?
 

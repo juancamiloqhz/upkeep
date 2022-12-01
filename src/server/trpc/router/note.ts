@@ -1,5 +1,6 @@
 import { Status } from "@prisma/client";
 import { z } from "zod";
+import { deleteImages as deleteImagesFromCloudinary } from "../../../utils/cloudinary";
 
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 
@@ -8,11 +9,13 @@ export const noteRouter = router({
     return ctx.prisma.note.findMany({
       where: {
         status: "ACTIVE",
+        authorId: ctx.session?.user?.id,
       },
       orderBy: {
         updatedAt: "desc",
       },
       include: {
+        images: true,
         labels: true,
       },
     });
@@ -21,11 +24,13 @@ export const noteRouter = router({
     return ctx.prisma.note.findMany({
       where: {
         status: "PINNED",
+        authorId: ctx.session?.user?.id,
       },
       orderBy: {
         updatedAt: "desc",
       },
       include: {
+        images: true,
         labels: true,
       },
     });
@@ -34,11 +39,13 @@ export const noteRouter = router({
     return ctx.prisma.note.findMany({
       where: {
         status: "TRASH",
+        authorId: ctx.session?.user?.id,
       },
       orderBy: {
         updatedAt: "desc",
       },
       include: {
+        images: true,
         labels: true,
       },
     });
@@ -47,11 +54,13 @@ export const noteRouter = router({
     return ctx.prisma.note.findMany({
       where: {
         status: "ARCHIVED",
+        authorId: ctx.session?.user?.id,
       },
       orderBy: {
         updatedAt: "desc",
       },
       include: {
+        images: true,
         labels: true,
       },
     });
@@ -72,6 +81,7 @@ export const noteRouter = router({
           updatedAt: "desc",
         },
         include: {
+          images: true,
           labels: true,
         },
       });
@@ -79,9 +89,10 @@ export const noteRouter = router({
   one: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(({ ctx, input }) => {
-      return ctx.prisma.note.findUnique({
+      return ctx.prisma.note.findFirst({
         where: {
           id: input.id,
+          authorId: ctx.session?.user?.id,
         },
       });
     }),
@@ -208,7 +219,21 @@ export const noteRouter = router({
     }),
   deleteOne: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const images = await ctx.prisma.image.findMany({
+        where: {
+          noteId: input.id,
+        },
+        select: {
+          public_id: true,
+        },
+      });
+      if (images.length > 0) {
+        await deleteImagesFromCloudinary(
+          images.map((image) => image.public_id)
+        );
+      }
+
       return ctx.prisma.note.delete({
         where: {
           id: input.id,
@@ -217,7 +242,22 @@ export const noteRouter = router({
     }),
   deleteMany: protectedProcedure
     .input(z.object({ ids: z.array(z.string()) }))
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const images = await ctx.prisma.image.findMany({
+        where: {
+          noteId: {
+            in: input.ids,
+          },
+        },
+        select: {
+          public_id: true,
+        },
+      });
+      if (images.length > 0) {
+        await deleteImagesFromCloudinary(
+          images.map((image) => image.public_id)
+        );
+      }
       return ctx.prisma.note.deleteMany({
         where: {
           id: {

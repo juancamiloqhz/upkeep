@@ -1,7 +1,7 @@
 import React from "react";
 import { useClickOutside } from "../../utils/helpers";
-import Image from "next/image";
-import { type Label, type Note } from "@prisma/client";
+import NextImage from "next/image";
+import { type Label, type Note, type Image } from "@prisma/client";
 import Tooltip from "../Radix/Tooltip";
 import { trpc } from "../../utils/trpc";
 import { bgList, colorList } from "../../utils/constants";
@@ -33,24 +33,21 @@ export default function CreateNote() {
   const router = useRouter();
   const utils = trpc.useContext();
 
+  const [uploading, setUploading] = React.useState(false);
   const [formFocused, setFormFocused] = React.useState(false);
   const [currentLabel, setCurrentLabel] = React.useState<Label | undefined>(
     undefined
   );
   const [title, setTitle] = React.useState("");
   const [content, setContent] = React.useState("");
-  const [background, setBackground] = React.useState<string | undefined>(
-    undefined
-  );
-  const [noteColor, setNoteColor] = React.useState<string | undefined>(
-    undefined
-  );
+  const [background, setBackground] = React.useState<string | null>(null);
+  const [noteColor, setNoteColor] = React.useState<string | null>(null);
   const [status, setStatus] = React.useState<Note["status"]>("ACTIVE");
   // Note created if user uploads an image. Create the note and then upload the image
-  const [newNote, setNewNote] = React.useState<Note | undefined>(undefined);
-  const [firstImage, setFirstImage] = React.useState<File | undefined>(
-    undefined
-  );
+  const [noteCreated, setNoteCreated] = React.useState<
+    (Note & { labels: Label[]; images: Image[] }) | undefined
+  >(undefined);
+  const [images, setImages] = React.useState<File[]>([]);
 
   const addNote = trpc.note.add.useMutation({
     async onMutate({ title, content, background, color, status }) {
@@ -73,6 +70,7 @@ export default function CreateNote() {
         createdAt: new Date(),
         updatedAt: new Date(),
         labels: [],
+        images: [],
       };
       switch (status) {
         case "ACTIVE":
@@ -92,8 +90,6 @@ export default function CreateNote() {
       }
       setTitle("");
       setContent("");
-      // setBackground("default");
-      // setNoteColor("default");
     },
     async onSuccess({ status }) {
       switch (status) {
@@ -109,13 +105,51 @@ export default function CreateNote() {
     },
   });
 
-  const addNoteWithFirstImage = trpc.note.add.useMutation();
+  const addNoteFromImage = trpc.note.add.useMutation();
+
+  const updateNote = trpc.note.edit.useMutation({
+    async onMutate({ id, title, content, background, color, status }) {
+      if (noteCreated) {
+        const allActiveNotes = utils.note.allActive.getData();
+        const allPinnedNotes = utils.note.allPinned.getData();
+        const newStatus: Note["status"] = status || noteCreated.status;
+        const editedNote = {
+          ...noteCreated,
+          title: title || null,
+          content: content || null,
+          background: background || null,
+          color: color || null,
+          status: newStatus,
+          updatedAt: new Date(),
+        };
+        switch (newStatus) {
+          case "ACTIVE":
+          case "ACTIVE":
+            utils.note.allActive.setData(undefined, [
+              editedNote,
+              ...(allActiveNotes || []),
+            ]);
+            break;
+          case "PINNED":
+            utils.note.allPinned.setData(undefined, [
+              editedNote,
+              ...(allPinnedNotes || []),
+            ]);
+            break;
+          default:
+            break;
+        }
+        setTitle("");
+        setContent("");
+      }
+    },
+  });
 
   useClickOutside({
     ref: formRef,
-    enabled: formFocused,
+    enabled: formFocused && !uploading,
     callback() {
-      if (title || content) {
+      if ((title || content) && !noteCreated) {
         addNote.mutate({
           title,
           content,
@@ -124,9 +158,60 @@ export default function CreateNote() {
           status,
         });
       }
+      if (noteCreated) {
+        if (
+          title ||
+          content ||
+          background !== noteCreated.background ||
+          noteColor !== noteCreated.color ||
+          status !== noteCreated.status
+        ) {
+          updateNote.mutate({
+            id: noteCreated.id,
+            title,
+            content,
+            background,
+            color: noteColor,
+            status,
+          });
+        } else {
+          const allActiveNotes = utils.note.allActive.getData();
+          const allPinnedNotes = utils.note.allPinned.getData();
+          const newNoteStatus: Note["status"] = status;
+          const newNote = {
+            ...noteCreated,
+            title: title || null,
+            content: content || null,
+            background: background || null,
+            color: noteColor || null,
+            status: newNoteStatus,
+          };
+          switch (status) {
+            case "ACTIVE":
+              utils.note.allActive.setData(undefined, [
+                newNote,
+                ...(allActiveNotes || []),
+              ]);
+              break;
+            case "PINNED":
+              utils.note.allPinned.setData(undefined, [
+                newNote,
+                ...(allPinnedNotes || []),
+              ]);
+              break;
+            default:
+              break;
+          }
+        }
+        setTitle("");
+        setContent("");
+        setImages([]);
+        setNoteCreated(undefined);
+      }
+
       setFormFocused(false);
-      setBackground(undefined);
-      setNoteColor(undefined);
+      setBackground(null);
+      setNoteColor(null);
       setStatus("ACTIVE");
     },
   });
@@ -164,6 +249,72 @@ export default function CreateNote() {
       }
     }
   }, [router.query?.id, router.pathname]);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    setFormFocused(true);
+    setUploading(true);
+    const files = e.target.files;
+    if (!files || files.length === 0) {
+      console.error("Please select one or more image to upload");
+      return null;
+    }
+    Array.from(files).map((file) => {
+      // Validate file type
+      if (!file.type || validImageTypes.indexOf(file.type) === -1) {
+        console.error(
+          "Please select a valid image format: GIF, JPG, PNG o WEBP."
+        );
+        return null;
+      }
+
+      // Validate file size (20MB)
+      if (file.size > 20 * 1024 * 1024) {
+        console.error("Max file size allowed is 20MB.");
+        return null;
+      }
+    });
+    setImages((images) => [...images, ...files]);
+    if (noteCreated) {
+      console.log("Note already created, adding new images to it");
+    } else {
+      try {
+        const noteRes = await addNoteFromImage.mutateAsync({
+          background,
+          color: noteColor,
+          status,
+        });
+        const promises = Array.from(files).map((file) => {
+          const formData = new FormData();
+          formData.append("image", file);
+          return fetch(`/api/note/upload/${noteRes.id}`, {
+            method: "POST",
+            body: formData,
+          });
+        });
+        const uploadedImages: Image[] = [];
+        await Promise.allSettled(promises).then((results) => {
+          results.forEach(async (result) => {
+            if (result.status === "fulfilled") {
+              const value = (await result.value.json()) as {
+                message: string;
+                image: Image;
+              };
+              uploadedImages.push(value.image);
+            }
+          });
+        });
+        setNoteCreated({
+          ...noteRes,
+          labels: [],
+          images: uploadedImages,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    setUploading(false);
+  }
+
   return (
     <form
       ref={formRef}
@@ -172,6 +323,22 @@ export default function CreateNote() {
       onFocus={() => setFormFocused(true)}
       style={formStyles}
     >
+      {images.length > 0 ? (
+        <div className="w-full">
+          {images.map((image, index) => (
+            <div className="relative h-60 w-full" key={index}>
+              <NextImage
+                src={URL.createObjectURL(image)}
+                fill
+                alt="Note Image"
+                className={`object-cover object-center${
+                  index === 0 ? " rounded-t-xl" : ""
+                }`}
+              />
+            </div>
+          ))}
+        </div>
+      ) : null}
       <RadixLabel.Root htmlFor="title" className="hidden">
         Note title
       </RadixLabel.Root>
@@ -193,11 +360,11 @@ export default function CreateNote() {
         name="content"
         id="content"
         placeholder="Take a note..."
-        cols={30}
+        cols={undefined}
         rows={formFocused ? 2 : 1}
         value={content}
         onChange={(e) => setContent(e.currentTarget.value)}
-        className={`resize-none px-4 placeholder:text-sm placeholder:font-medium focus-visible:outline-none bg-transparent${
+        className={`w-full resize-none px-4 placeholder:text-sm placeholder:font-medium focus-visible:outline-none bg-transparent${
           !formFocused
             ? " h-11 rounded-xl placeholder:leading-[44px] placeholder:text-black dark:placeholder:text-white"
             : " py-3 placeholder:text-black/70 dark:placeholder:text-white/70"
@@ -304,7 +471,7 @@ export default function CreateNote() {
                                 ? " border-fuchsia-500 hover:border-fuchsia-500"
                                 : " border-black/20 hover:border-black dark:border-white/20 dark:hover:border-white"
                             }`}
-                            onClick={() => setNoteColor(undefined)}
+                            onClick={() => setNoteColor(null)}
                           />
                           {!noteColor ? (
                             <OutlineDoneIcon
@@ -372,7 +539,7 @@ export default function CreateNote() {
                       {bgList.map((bg, i) => (
                         <Tooltip text={bg.name} key={`${bg.name}-${i}`}>
                           <li className="relative h-[40px] min-h-[40px] w-[40px] min-w-[40px]">
-                            <Image
+                            <NextImage
                               src={bg.path}
                               alt={bg.name}
                               fill
@@ -398,13 +565,21 @@ export default function CreateNote() {
               </Popover.Root>
               {/* ADD IMAGE */}
               <Tooltip text="Add image">
-                <button
-                  type="button"
-                  className="rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
+                <RadixLabel.Root
+                  className="cursor-pointer rounded-full p-[8px] text-black/60 hover:bg-black/10 hover:text-black focus:ring-1 focus:ring-black/60 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/60"
+                  htmlFor="upload-actions-bar"
                 >
                   <ImageAddIcon size={18} />
-                </button>
+                </RadixLabel.Root>
               </Tooltip>
+              <input
+                id="upload-actions-bar"
+                type="file"
+                accept={validImageTypes}
+                className="hidden"
+                multiple
+                onChange={handleUpload}
+              />
               {/* ARCHIVE / UNARCHIVE */}
               <Tooltip text={status === "ARCHIVED" ? "Unarchive" : "Archive"}>
                 <button
@@ -489,12 +664,9 @@ export default function CreateNote() {
             <button
               className="h-8 self-end rounded px-6 text-sm font-medium hover:bg-black/10 dark:hover:bg-white/10"
               type="button"
-              onClick={() => {
-                setNoteColor("default");
-                setBackground("default");
-                setStatus("ACTIVE");
-                setFormFocused(false);
-              }}
+              // onClick={() => {
+
+              // }}
             >
               Close
             </button>
@@ -537,76 +709,16 @@ export default function CreateNote() {
             type="file"
             accept={validImageTypes}
             className="hidden"
-            onChange={async (e) => {
-              setFormFocused(true);
-              // uploadPhoto(e);
-              const files = e.target.files;
-              const file = files ? files[0] : false;
-              if (!file) {
-                console.error("Please select a file before clicking 'Upload'");
-                return null;
-              }
-
-              // Validate file type
-              if (!file.type || validImageTypes.indexOf(file.type) === -1) {
-                console.error(
-                  "Please select a valid image format: GIF, JPG, PNG o WEBP."
-                );
-                return null;
-              }
-
-              // Validate file size (20MB)
-              if (file.size > 20 * 1024 * 1024) {
-                console.error("Max file size allowed is 20MB.");
-                return null;
-              }
-              // setFirstImage(file);
-              try {
-                const noteRes = await addNoteWithFirstImage.mutateAsync({
-                  background,
-                  color: noteColor,
-                  status,
-                });
-                console.log(noteRes);
-                const imageRes = await handleUploadImage(file, noteRes.id);
-                console.log(imageRes);
-              } catch (error) {
-                console.log(error);
-              }
-            }}
+            multiple
+            onChange={handleUpload}
           />
         </div>
       ) : null}
       {addNote.error ? <p>{addNote.error.message}</p> : null}
+      {addNoteFromImage.error ? <p>{addNoteFromImage.error.message}</p> : null}
     </form>
   );
 }
 
 const validImageTypes =
   "image/gif, image/jpeg, image/jpg, image/png, image/webp, image/avif, image/heic, image/heif";
-
-async function handleUploadImage(file: File, noteId: string) {
-  const filename = encodeURIComponent(file.name);
-  const fileType = encodeURIComponent(file.type);
-
-  const formData = new FormData();
-  formData.append("image", file);
-
-  console.dir(file, { depth: null });
-  console.dir(filename, { depth: null });
-  console.dir(fileType, { depth: null });
-  console.dir(formData, { depth: null });
-
-  return await fetch(`/api/note/upload/${noteId}`, {
-    method: "POST",
-    body: formData,
-  });
-
-  // if (upload.ok) {
-  //   console.log("Uploaded successfully!");
-  // } else {
-  //   console.error("Upload failed.");
-  // }
-
-  // return null;
-}

@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import React from "react";
 // import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { trpc } from "../../utils/trpc";
@@ -6,7 +5,6 @@ import { ListNote } from "../Note";
 // import { AnimatedNote } from "../Note/AnimatedNote";
 
 export default function HomeView() {
-  const router = useRouter();
   const allActiveNotes = trpc.note.allActive.useQuery(undefined, {
     staleTime: 3000,
     refetchOnWindowFocus: false,

@@ -77,7 +77,7 @@ export default function Header({
 
   return (
     <header
-      className={`fixed top-0 z-[101] grid h-16 w-full grid-cols-[auto_auto] items-center gap-6 bg-gray-50 px-4 transition-shadow dark:bg-gray-900 md:grid-cols-[minmax(160px,_220px)_minmax(300px,_600px)_1fr] ${
+      className={`fixed top-0 z-[101] grid h-16 w-full grid-cols-[auto_auto] items-center bg-gray-50 px-4 transition-shadow dark:bg-gray-900 sm:gap-6 md:grid-cols-[minmax(160px,_220px)_minmax(300px,_600px)_1fr] ${
         hasScroll
           ? "shadow-md dark:shadow-black"
           : "border-b border-black/10 dark:border-white/10"

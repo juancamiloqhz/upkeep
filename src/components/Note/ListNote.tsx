@@ -7,10 +7,10 @@ import * as RadixLabel from "@radix-ui/react-label";
 import { trpc } from "../../utils/trpc";
 import Tooltip from "../Radix/Tooltip";
 import { useClickOutside } from "../../utils/helpers";
-import Image from "next/image";
+import NextImage from "next/image";
 import { bgList, colorList } from "../../utils/constants";
 import { useRouter } from "next/router";
-import { type Note, type Label } from "@prisma/client";
+import { type Note, type Label, type Image } from "@prisma/client";
 import {
   ArchiveIcon,
   BellPlusIcon,
@@ -34,7 +34,9 @@ import {
   UnarchiveIcon,
 } from "../Icons";
 
-const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
+const ListNote: React.FC<{
+  note: Note & { labels: Label[]; images: Image[] };
+}> = ({ note }) => {
   const ref = React.useRef<HTMLLIElement>(null);
   const [btnFocused, setBtnFocused] = React.useState(false);
   const router = useRouter();
@@ -309,6 +311,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
         createdAt: new Date(),
         updatedAt: new Date(),
         labels: note.labels,
+        images: note.images,
       };
       switch (note.status) {
         case "ACTIVE":
@@ -375,15 +378,15 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
     [note.color, note.background]
   );
 
-  const noteLabels = React.useMemo(() => {
+  const userLabels = React.useMemo(() => {
     return utils.label.all.getData() || [];
   }, [utils.label.all]);
 
   const hasActiveTags = React.useMemo(() => {
-    return noteLabels.some(
+    return userLabels.some(
       (label) => label.id === note.labels.find((l) => l.id === label.id)?.id
     );
-  }, [note.labels, noteLabels]);
+  }, [note.labels, userLabels]);
 
   return (
     <li
@@ -426,6 +429,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
           </button>
         </Tooltip>
       ) : null}
+      {/* SELECT NOTE */}
       <Tooltip text={"Select note"}>
         <button
           className={`group/btn invisible absolute top-1 left-1 flex items-center justify-center rounded-full opacity-0 transition-all duration-300 ease-in hover:bg-black/10 group-hover/li:visible group-hover/li:opacity-100`}
@@ -437,6 +441,26 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
           />
         </button>
       </Tooltip>
+      {/* NOTE IMAGES */}
+      {note.images.length > 0 ? (
+        <div className="flex w-full items-center justify-center">
+          {note.images.map((image, index) => (
+            <div className="relative h-36 w-full" key={image.id}>
+              <NextImage
+                src={image.url}
+                alt={`Image ${index + 1}`}
+                fill
+                priority={index === 0}
+                className={`object-cover object-center${
+                  index === 0 ? " rounded-t-lg" : ""
+                }`}
+                sizes="(max-width: 768px) 100vw, 240px"
+              />
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       {/* NOTE CONTENT */}
       <div
         className="flex w-full flex-col justify-between px-3 py-2"
@@ -450,7 +474,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
           );
         }}
       >
-        <div className="h-full min-h-[4rem]">
+        <div className="h-full min-h-[1rem]">
           {note.title ? (
             <h3 className="mr-6 mb-2 font-semibold leading-tight">
               {note.title}
@@ -757,7 +781,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                       {bgList.map((bg, i) => (
                         <Tooltip text={bg.name} key={`${bg.name}-${i}`}>
                           <li className="relative h-[40px] min-h-[40px] w-[40px] min-w-[40px]">
-                            <Image
+                            <NextImage
                               src={bg.path}
                               alt={bg.name}
                               fill
@@ -870,7 +894,7 @@ const ListNote: React.FC<{ note: Note & { labels: Label[] } }> = ({ note }) => {
                           </DropdownMenu.Label>
                         </div>
                         <div className="max-h-[250px] overflow-y-auto pb-4">
-                          {noteLabels.map((label) => (
+                          {userLabels.map((label) => (
                             <LabelPick
                               key={label.id}
                               label={label}

@@ -4,6 +4,7 @@ import * as z from "zod";
 import { getServerAuthSession } from "../../../../server/common/get-server-auth-session";
 import { uploadImage } from "../../../../utils/cloudinary";
 import { prisma } from "../../../../server/db/client";
+import { type Image } from "@prisma/client";
 
 export async function getImage(
   formData: NextApiRequest
@@ -23,7 +24,10 @@ export const config = {
   },
 };
 
-const handle = async (req: NextApiRequest, res: NextApiResponse) => {
+const handle = async (
+  req: NextApiRequest,
+  res: NextApiResponse<{ message: string; image?: Image }>
+) => {
   if (req.method === "GET") {
     res.status(405).json({ message: "Method not allowed" });
   }
@@ -53,43 +57,25 @@ const handle = async (req: NextApiRequest, res: NextApiResponse) => {
     }
     try {
       const { fields, files } = await getImage(req);
-      console.log({ files });
+      // console.log({ files });
       const image = files.image as File;
       const imageUploaded = await uploadImage(image.filepath);
-      console.log({ imageUploaded });
-      // const updatedNote = await prisma.note.update({
-      //   where: { id: String(noteId) },
-      //   data: { image: secure_url },
-      // });
-      res.status(200).json({ message: "Image uploaded" });
+      // console.log({ imageUploaded });
+
+      const noteWithImage = await prisma.image.create({
+        data: {
+          public_id: imageUploaded.public_id,
+          url: imageUploaded.secure_url,
+          format: imageUploaded.format,
+          version: imageUploaded.version.toString(),
+          order: 0,
+          note: { connect: { id: String(noteId) } },
+        },
+      });
+      res.status(200).json({ message: "Image uploaded", image: noteWithImage });
     } catch (error) {
       console.log(error);
       res.status(500).end();
-      // const formidable = new IncomingForm({ keepExtensions: true });
-      // formidable.parse(req);
-      // formidable.on("file", async (field, file) => {
-      //   console.log("-> File", file.originalFilename);
-      //   try {
-      //     const imageData = await uploadImage(file.filepath);
-      //     console.log("-> Image uploaded", imageData);
-      //     //   const result = await prisma.image.create({
-      //     //     data: {
-      //     //       publicId: imageData.public_id,
-      //     //       format: imageData.format,
-      //     //       version: imageData.version.toString(),
-      //     //     },
-      //     //   });
-      //   } catch (error) {
-      //     res.status(500).json({ message: "Error uploading image" });
-      //   }
-      // });
-      // formidable.on("error", (e) => {
-      //   console.log("-> Error");
-      //   res.status(500).json({ message: `Something went wrong: ${e.message}` });
-      // });
-      // formidable.on("end", () => {
-      //   console.log("-> upload done");
-      // });
     }
   }
 };

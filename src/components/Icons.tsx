@@ -8,7 +8,7 @@ export const MenuIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 1024 1024"
     height={props.size || "18"}
     width={props.size || "18"}
@@ -23,7 +23,7 @@ export const CloudDoneIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "22"}
     width={props.size || "22"}
@@ -39,7 +39,7 @@ export const AccountCircleIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "32"}
     width={props.size || "32"}
@@ -55,7 +55,7 @@ export const OutlineSettingsIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "22"}
     width={props.size || "22"}
@@ -71,7 +71,7 @@ export const ViewListIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     version="1.1"
     viewBox="0 0 17 17"
     height={props.size || "20"}
@@ -88,7 +88,7 @@ export const ViewGridIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     version="1.1"
     viewBox="0 0 17 17"
     height={props.size || "20"}
@@ -105,7 +105,7 @@ export const CheckIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "1em"}
     width={props.size || "1em"}
@@ -121,7 +121,7 @@ export const CheckSquareIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "1em"}
     width={props.size || "1em"}
@@ -137,7 +137,7 @@ export const PaintBrushIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "1em"}
     width={props.size || "1em"}
@@ -152,7 +152,7 @@ export const SearchIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "24"}
     width={props.size || "24"}
@@ -168,7 +168,7 @@ export const FlashOutlineIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     version="1.2"
     baseProfile="tiny"
     viewBox="0 0 24 24"
@@ -185,7 +185,7 @@ export const AlarmIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "1em"}
     width={props.size || "1em"}
@@ -201,7 +201,7 @@ export const CloseIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "20"}
     width={props.size || "20"}
@@ -217,7 +217,7 @@ export const PlusIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "20"}
     width={props.size || "20"}
@@ -232,7 +232,7 @@ export const LabelIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "18"}
     width={props.size || "18"}
@@ -248,7 +248,7 @@ export const LabelOutlineIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "1em"}
     width={props.size || "1em"}
@@ -264,7 +264,7 @@ export const EditIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "20"}
     width={props.size || "20"}
@@ -280,10 +280,10 @@ export const EditOutlineIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="none"
-    stroke-width="2"
+    strokeWidth="2"
     viewBox="0 0 24 24"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     height={props.size || "1em"}
     width={props.size || "1em"}
     xmlns="http://www.w3.org/2000/svg"
@@ -298,7 +298,7 @@ export const ArchiveIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "1em"}
     width={props.size || "1em"}
@@ -314,7 +314,7 @@ export const UnarchiveIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "18"}
     width={props.size || "18"}
@@ -330,10 +330,10 @@ export const TrashIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="none"
-    stroke-width="2"
+    strokeWidth="2"
     viewBox="0 0 24 24"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     height={props.size || "1em"}
     width={props.size || "1em"}
     xmlns="http://www.w3.org/2000/svg"
@@ -350,7 +350,7 @@ export const TrashFillIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 512 512"
     height={props.size || "18"}
     width={props.size || "18"}
@@ -365,7 +365,7 @@ export const PinIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     version="1.2"
     baseProfile="tiny"
     viewBox="0 0 24 24"
@@ -382,7 +382,7 @@ export const PinOutlineIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     version="1.2"
     baseProfile="tiny"
     viewBox="0 0 24 24"
@@ -399,7 +399,7 @@ export const BellPlusIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "18"}
     width={props.size || "18"}
@@ -415,7 +415,7 @@ export const OutlineUserPlusIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="none"
-    stroke-width="1.5"
+    strokeWidth="1.5"
     viewBox="0 0 24 24"
     aria-hidden="true"
     height={props.size || "18"}
@@ -424,8 +424,8 @@ export const OutlineUserPlusIcon = ({ ...props }: SvgProps) => (
     {...props}
   >
     <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z"
     ></path>
   </svg>
@@ -435,7 +435,7 @@ export const OutlineColorPaletteIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "18"}
     width={props.size || "18"}
@@ -455,7 +455,7 @@ export const ImageAddIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "18"}
     width={props.size || "18"}
@@ -472,7 +472,7 @@ export const MoreVerticalIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "18"}
     width={props.size || "18"}
@@ -488,7 +488,7 @@ export const UndoIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "18"}
     width={props.size || "18"}
@@ -503,7 +503,7 @@ export const RedoIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "18"}
     width={props.size || "18"}
@@ -518,10 +518,10 @@ export const DropletOffIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="none"
-    stroke-width="2"
+    strokeWidth="2"
     viewBox="0 0 24 24"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     height={props.size || "32"}
     width={props.size || "32"}
     xmlns="http://www.w3.org/2000/svg"
@@ -539,7 +539,7 @@ export const OutlineDoneIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "14"}
     width={props.size || "14"}
@@ -555,7 +555,7 @@ export const OutlineHideImageIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "40"}
     width={props.size || "40"}
@@ -571,7 +571,7 @@ export const OutlineClockIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="none"
-    stroke-width="1.5"
+    strokeWidth="1.5"
     viewBox="0 0 24 24"
     aria-hidden="true"
     height={props.size || "16"}
@@ -580,8 +580,8 @@ export const OutlineClockIcon = ({ ...props }: SvgProps) => (
     {...props}
   >
     <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
     ></path>
   </svg>
@@ -591,7 +591,7 @@ export const OutlineRestoreFromTrashIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "22"}
     width={props.size || "22"}
@@ -607,7 +607,7 @@ export const OutlineDeleteForeverIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "22"}
     width={props.size || "22"}
@@ -623,7 +623,7 @@ export const LocationFillIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "18"}
     width={props.size || "18"}
@@ -639,7 +639,7 @@ export const ChevronRightIcon = ({ ...props }: SvgProps) => (
   <svg
     stroke="currentColor"
     fill="currentColor"
-    stroke-width="0"
+    strokeWidth="0"
     viewBox="0 0 24 24"
     height={props.size || "18"}
     width={props.size || "18"}
